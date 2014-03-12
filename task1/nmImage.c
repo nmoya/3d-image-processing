@@ -222,7 +222,7 @@ nmImage * nmLinearStretching(nmImage *img, float level, float width)
         else if (value > upper_bound)
             output->val[i] = H;
         else
-            output->val[i] = (int) (H/width) * (value - upper_bound);
+            output->val[i] = (int) (H/width) * fabs((value - upper_bound));
     }
     return output;
 }
