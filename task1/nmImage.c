@@ -128,39 +128,76 @@ void nmWriteImageP2(nmImage *img, char filename[])
 }
 nmImage * nmGetAxialSlice(nmImage *img, int slice)
 {
-    int i, index;
+    int y, x, index;
+    nmVoxel v;
     nmImage *tempImg = nmCreateImage(img->xsize, img->ysize, 1);
-    index = 0;
-    for (i= (img->xsize*img->ysize)*slice; i < (img->xsize*img->ysize)*(slice+1); i++)
+    v.z = slice;
+    int counter = 0;
+    for (y=0; y<img->ysize; y++)
     {
-        tempImg->val[index] = img->val[i];
-        index++;
+        for (x=0; x<img->xsize; x++)
+        {
+            v.x = x; v.y = y;
+            index = nmVoxelToIndex(img, v);
+            tempImg->val[counter] = img->val[index];
+            counter++;
+        }
     }
     return tempImg;
 }
 nmImage * nmGetCoronalSlice(nmImage *img, int slice)
 {
-    int i, index;
+    int z, x, index;
+    nmVoxel v;
     nmImage *tempImg = nmCreateImage(img->xsize, img->ysize, 1);
-    index = 0;
-    for (i= (img->xsize*img->zsize)*slice; i < (img->xsize*img->zsize)*(slice+1); i++)
+    v.y = slice;
+    int counter = 0;
+    for (z=0; z<img->zsize; z++)
     {
-        tempImg->val[index] = img->val[i];
-        index++;
+        for (x=0; x<img->xsize; x++)
+        {
+            v.x = x; v.z = z;
+            index = nmVoxelToIndex(img, v);
+            tempImg->val[counter] = img->val[index];
+            counter++;
+        }
     }
     return tempImg;
 }
 nmImage * nmGetSagitalSlice(nmImage *img, int slice)
 {
-    int i, index;
+    int y, z, index;
+    nmVoxel v;
     nmImage *tempImg = nmCreateImage(img->xsize, img->ysize, 1);
-    index = 0;
-    for (i= (img->ysize*img->zsize)*slice; i < (img->ysize*img->zsize)*(slice+1); i++)
+    v.x = slice;
+    int counter = 0;
+    for (z=0; z<img->zsize; z++)
     {
-        tempImg->val[index] = img->val[i];
-        index++;
+        for (y=0; y<img->ysize; y++)
+        {
+            v.y = y; v.z = z;
+            index = nmVoxelToIndex(img, v);
+            tempImg->val[counter] = img->val[index];
+            counter++;
+        }
     }
     return tempImg;
+}
+
+nmVoxel nmIndexToVoxel(nmImage *img, int index)
+{
+    nmVoxel v;
+    v.x = (index % (img->xsize*img->ysize)) % img->xsize;
+    v.y = (index % (img->xsize*img->ysize)) / img->xsize;
+    v.z = index / (img->xsize*img->ysize);
+
+    return v;
+}
+int nmVoxelToIndex(nmImage *img, nmVoxel v)
+{
+    int index =0;
+    index = v.x + v.y*img->xsize + v.z*img->xsize*img->ysize;
+    return index;
 }
 
 void nmError(char *msg, char *func)

@@ -11,6 +11,10 @@ typedef struct nm_image {
   int maxval, minval, n; // minimum and maximum values, and number of voxels 
 } nmImage;
 
+typedef struct nm_voxel {
+	int x, y, z;
+}nmVoxel;
+
 nmImage *nmCreateImage(int xsize,int ysize,int zsize);
 void nmDestroyImage(nmImage **img);
 
@@ -27,3 +31,6 @@ int nmMaximumValue(nmImage *img);
 nmImage * nmGetAxialSlice(nmImage *img, int slice);
 nmImage * nmGetSagitalSlice(nmImage *img, int slice);
 nmImage * nmGetCoronalSlice(nmImage *img, int slice);
+
+nmVoxel nmIndexToVoxel(nmImage *img, int index);
+int nmVoxelToIndex(nmImage *img, nmVoxel v);
