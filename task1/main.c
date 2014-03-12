@@ -1,3 +1,19 @@
+/*
+Student: Nikolas Moya
+Number: 144678
+Email: nikolasmoya@gmail.com
+
+Instructions:
+make main       //Will generate the main binary
+./main <filename> <0=axial, 1=coronal, 2=sagital> 
+
+Example:
+./main ../../base/small-foot.scn 0
+./main ../../base/small-foot.scn 1
+./main ../../base/small-foot.scn 2
+
+*/
+
 #include "nmImage.h"
 
 int main(int argc, char *argv[])
@@ -10,6 +26,14 @@ int main(int argc, char *argv[])
     char filename[120];
     nmImage *nm = nmReadSCNImage(argv[1]);
     nmImage *tempImg = NULL;
+
+    float mean = nmMeanValue(nm);
+    float stdev = nmStdDevValue(nm);
+    printf("Mean: %.2f\n", mean);
+    printf("StdDev: %.2f\n", stdev);
+
+    nmImage *adjusted_img = NULL;
+    adjusted_img = nmLinearStretching(nm, mean, stdev);
 
     if (view == 0) //Axial
     {
@@ -48,6 +72,7 @@ int main(int argc, char *argv[])
         nmError("Wrong view option", "main");
 
     nmDestroyImage(&nm);
+    nmDestroyImage(&adjusted_img);
 
     return 0;
 }

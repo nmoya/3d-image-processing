@@ -205,6 +205,61 @@ void nmError(char *msg, char *func)
   fprintf(stderr,"Error in %s: \n%s. \n",func, msg);
   exit(1);
 }
+nmImage * nmLinearStretching(nmImage *img, float level, float width)
+{
+    int H = 4095;
+    int i = 0;
+    nmImage *output = nmCreateImage(img->xsize, img->ysize, img->zsize);
+
+    float lower_bound = level - (width/2.0);
+    float upper_bound = level + (width/2.0);
+    float value = 0;
+    for (i=0; i<img->n; i++)
+    {
+        value = img->val[i];
+        if (value < lower_bound)
+            output->val[i] = 0;
+        else if (value > upper_bound)
+            output->val[i] = H;
+        else
+            output->val[i] = (int) (H/width) * (value - upper_bound);
+    }
+    return output;
+}
+float nmMeanValue(nmImage *img)
+{
+    float number_of_pixels = 0;
+    float sum = 0;
+    int i =0;
+    for (i=0; i< img->n; i++)
+    {
+        if (img->val[i])
+        {
+            sum += img->val[i];
+            number_of_pixels++;
+        }
+    }
+    return sum / number_of_pixels * 1.0;
+}
+float nmStdDevValue(nmImage *img)
+{
+    int i=0;
+    float average = nmMeanValue(img);
+    float accumulator = 0;
+    float variance = 0;
+    float number_of_pixels = 0;
+
+    for (i=0; i<img->n; i++)
+    {
+        if (img->val[i])
+        {
+            accumulator += pow((img->val[i] - average), 2);
+            number_of_pixels++;
+        }
+    }
+    variance = (float) (accumulator*1.0) / (number_of_pixels * 1.0);
+    return (float) sqrt(variance);
+}
 int nmMinimumValue(nmImage *img)
 {
   int p;       
