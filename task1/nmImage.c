@@ -205,14 +205,15 @@ void nmError(char *msg, char *func)
   fprintf(stderr,"Error in %s: \n%s. \n",func, msg);
   exit(1);
 }
-nmImage * nmLinearStretching(nmImage *img, float level, float width)
+nmImage * nmLinearStretching(nmImage *img, float level, float window)
 {
-    int H = 4095;
+    //int H = 4095;
+    int H = nmMaximumValue(img);
     int i = 0;
     nmImage *output = nmCreateImage(img->xsize, img->ysize, img->zsize);
 
-    float lower_bound = level - (width/2.0);
-    float upper_bound = level + (width/2.0);
+    float lower_bound = level - (window/2.0);
+    float upper_bound = level + (window/2.0);
     float value = 0;
     for (i=0; i<img->n; i++)
     {
@@ -222,7 +223,7 @@ nmImage * nmLinearStretching(nmImage *img, float level, float width)
         else if (value > upper_bound)
             output->val[i] = H;
         else
-            output->val[i] = (int) (H/width) * fabs((value - upper_bound));
+            output->val[i] = (int) (H/window) * fabs((value - upper_bound));
     }
     return output;
 }
@@ -233,7 +234,7 @@ float nmMeanValue(nmImage *img)
     int i =0;
     for (i=0; i< img->n; i++)
     {
-        if (img->val[i])
+        if (img->val[i] > 100)
         {
             sum += img->val[i];
             number_of_pixels++;
@@ -251,7 +252,7 @@ float nmStdDevValue(nmImage *img)
 
     for (i=0; i<img->n; i++)
     {
-        if (img->val[i])
+        if (img->val[i] > 100)
         {
             accumulator += pow((img->val[i] - average), 2);
             number_of_pixels++;

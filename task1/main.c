@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
     printf("StdDev: %.2f\n", stdev);
 
     nmImage *adjusted_img = NULL;
-    //adjusted_img = nmLinearStretching(nm, mean, stdev);
-    adjusted_img = nm;
+    adjusted_img = nmLinearStretching(nm, mean, stdev*2);
+    //adjusted_img = nm;
 
     if (view == 0) //Axial
     {
