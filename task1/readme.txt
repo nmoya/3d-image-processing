@@ -10,3 +10,5 @@ Example:
 ./main ../../base/small-foot.scn 0
 ./main ../../base/small-foot.scn 1
 ./main ../../base/small-foot.scn 2
+
+The threshold to compute the mean is 100. And the standard deviation is multiplied by to to work as a window parameter.

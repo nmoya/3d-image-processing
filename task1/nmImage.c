@@ -149,12 +149,12 @@ nmImage * nmGetCoronalSlice(nmImage *img, int slice)
 {
     int z, x, index;
     nmVoxel v;
-    nmImage *tempImg = nmCreateImage(img->xsize, img->ysize, 1);
+    nmImage *tempImg = nmCreateImage(img->zsize, img->xsize, 1);
     v.y = slice;
     int counter = 0;
-    for (z=0; z<img->zsize; z++)
+    for (x=0; x<img->xsize; x++)
     {
-        for (x=0; x<img->xsize; x++)
+        for (z=0; z<img->zsize; z++)
         {
             v.x = x; v.z = z;
             index = nmVoxelToIndex(img, v);
@@ -168,7 +168,7 @@ nmImage * nmGetSagitalSlice(nmImage *img, int slice)
 {
     int y, z, index;
     nmVoxel v;
-    nmImage *tempImg = nmCreateImage(img->xsize, img->ysize, 1);
+    nmImage *tempImg = nmCreateImage(img->ysize, img->zsize, 1);
     v.x = slice;
     int counter = 0;
     for (z=0; z<img->zsize; z++)
