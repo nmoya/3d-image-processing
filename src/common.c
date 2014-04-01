@@ -134,3 +134,9 @@ float CompTime(timer *tic, timer *toc) /* It computes the time difference */
   }
   return(t);
 }
+int FVoxelSize (FVoxel *queue)
+{
+  int i = 0;
+  while(!queue[i].terminus) i++;
+  return --i;
+}

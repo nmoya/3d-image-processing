@@ -43,6 +43,11 @@ typedef struct _voxel {
   int x,y,z;
 } Voxel;
 
+typedef struct _fvoxel{
+	float x, y, z;
+	unsigned int terminus : 1;
+}FVoxel;
+
 typedef struct _dcomplex
 {
   double r;
@@ -126,5 +131,9 @@ timer *Tic(); /* It marks the initial time */
 timer *Toc(); /* It marks the final time */
 
 float CompTime(timer *tic, timer *toc); /* It computes the time difference */
+
+
+int FVoxelSize (FVoxel *queue);
+
 
 #endif

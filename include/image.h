@@ -25,20 +25,13 @@ typedef struct _image {
 
 Voxel   GetVoxelCoord(Image *img, int p); 
 char    ValidVoxel(Image *img, Voxel u);
-
+int 	VoxelValue(Image *img, Voxel v);
 
 /* Allocate memory to store image */ 
 Image        *CreateImage(int xsize, int ysize, int zsize); 
 void          DestroyImage(Image *img); /* Free memory */
 Image        *ReadImage(char *filename); /* Read image from a file */
 void          WriteImage(Image *img, char *filename); /* Write image into a file */ 
-
-
-/*--------------------- Task 1---------------------------- */
-Image 		* GetSagitalSlice(Image *img, int slice);
-Image 		* GetAxialSlice(Image *img, int slice);
-Image 		* GetCoronalSlice(Image *img, int slice);
-void 		WriteImageP2(Image *img, char filename[]);
 
 
 /*--------------------- Voxel-based methods---------------------------- */
@@ -54,5 +47,21 @@ Image        *LinearFilter(Image *img, Kernel *K); /* Filter image by convolutio
 /*------------------- Connectivity-based methods ------------------------*/
 
 Image        *LabelBinaryImage(Image *img, AdjRel *A); /* Label foreground components */
+
+
+/*--------------------- Task 1---------------------------- */
+Image 		* GetSagitalSlice(Image *img, int slice);
+Image 		* GetAxialSlice(Image *img, int slice);
+Image 		* GetCoronalSlice(Image *img, int slice);
+void 		WriteImageP2(Image *img, char filename[]);
+
+/*--------------------- Task 2---------------------------- */
+int 		CompareVoxels(Voxel v1, Voxel v2);
+float 		* IntensityProfile(Image *img, Voxel p1, Voxel pn);
+FVoxel 		* DDAAlgorithm(Voxel p1, Voxel pn);
+int 		LinearInterpolationValue(Image *img, FVoxel v);
+Voxel 		LinearInterpolationCoord(Image *img, FVoxel v);
+void 		DrawLine(Image *img, Voxel p1, Voxel pn, int color);
+
 
 #endif

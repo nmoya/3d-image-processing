@@ -5,7 +5,7 @@ OBJ=./obj
 BIN=./bin
 
 #FLAGS= -g  -O0 -Wall -D _DEBUG -Wno-unused-result -fPIC -std=gnu99 -pedantic
-FLAGS=-O3 -Wall -fPIC -std=gnu99 -pedantic
+FLAGS=-O3 -Wall -fPIC -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
 
 libmo815-3dvis: $(LIB)/libmo815-3dvis.a
 	echo "libmo815-3dvis.a built..."

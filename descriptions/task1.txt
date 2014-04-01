@@ -1,0 +1,42 @@
+Create a C program to read the image in this directory and, according
+to the option 0 - axial, 1 - coronal, and 2 - sagittal, write its
+axial, coronal, or sagital slices in P2 image files (*.pgm
+files). Given that you do not know the image orientation just assume
+that these slices will be xy, xz, and yz. The input image format is of
+type SCN. It contains an ascii header followed by the binary data
+(recall to read the character '\n' at the end of each line in ascii
+format):
+
+SCN
+xsize ysize zsize
+dx dy dz
+depth
+v1v2v3.......vn
+
+where xsize, ysize and zsize are the number of voxels along x, y, and
+z, respectively; dx, dy, dz are the voxel sizes along x, y, and z, in
+mm, respectively; and depth is the number of bits per voxel (i.e., the
+intensity of each voxel is stored in 2 bytes). The voxel intensities
+v1, v2, ..., vn, where n is the number of voxels, form a binary stream
+of n unsigned short values. Given that these intensities usually range
+from 0 to 4095 (depth = 12 bits), the volume slices should be stored
+in a known 2D image format that supports numbers beyond 255. The P2
+image format does (it is entirely a text file):
+
+P2
+xsize ysize
+Imax
+p1 p2 p3 ... pm
+
+where Imax is the maximum intensity in the slice and the pixel
+intensities p1 p2 p3 ... pm, where m is the number of pixels in the
+slice, are written in ascii with a blank space between them.
+
+Use gimp or display from the ImageMagick package to display the output
+slices. 
+
+Afterwards, include an intermediate step in your program to compute
+the mean and stantard deviation of the volume intensities above 0 and
+use them as level and width in a window-and-level operation with
+H=4095 to create a new image with better brightness and contrast.
+
