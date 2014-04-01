@@ -33,13 +33,21 @@ int main(int argc, char *argv[])
     p2.y = atoi(argv[6]);
     p2.z = atoi(argv[7]);
 
-    output = IntensityProfile(img, p1, p2);
-    DrawLine(img, p1, p2, 4095);
+    if(!ValidVoxel(img, p1) || !ValidVoxel(img, p2))
+    {
+        Error("Voxels are outside image domain", "task2-main");
+        return 1;
+    }
+    output = IntensityProfile(img, p1, p2);    
+    DrawLine(img, p1, p2, 21485);
     
+    printf("Intensity Profile: \n");
     for(i=0; i< output->n; i++)
         printf("%g ", output->val[i]);
     printf("\n");
+    printf("Line length: %d\n", output->n);
 
+    printf("Line image saved on: ../data/line.scn\n");
     WriteImage(img, "../data/line.scn");
     DestroyFloatList(output);
     DestroyImage(img);

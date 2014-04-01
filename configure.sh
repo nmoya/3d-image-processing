@@ -1,4 +1,4 @@
-#!/usr/bin/bash/
+#!/bin/bash
 mkdir lib
 mkdir data
 mkdir obj

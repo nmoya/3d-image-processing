@@ -536,12 +536,22 @@ FloatList * IntensityProfile(Image *img, Voxel p1, Voxel pn)
 void DrawLine(Image *img, Voxel p1, Voxel pn, int color)
 {
   FVoxelList *line = DDAAlgorithm(p1, pn);
-  Voxel v;
-  int i=0;
+  AdjRel *A = Spheric(3);
+  Voxel v, u;
+  int i=0, j=0, q=0;
+
   for(i=0; i<line->n; i++)
   {
-    v = LinearInterpolationCoord(img, line->val[i]);
-    img->val[GetVoxelIndex(img, v)] = color;
+    u = LinearInterpolationCoord(img, line->val[i]);
+    for (j=0; j < A->n; j++) 
+    {
+      v = GetAdjacentVoxel(A, u, j);
+      if (ValidVoxel(img, v))
+      {
+        q = GetVoxelIndex(img, v);
+        img->val[q] = color;
+      }
+    }
   }
   DestroyFVoxelList(line);
 }
