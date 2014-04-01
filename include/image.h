@@ -57,8 +57,8 @@ void 		WriteImageP2(Image *img, char filename[]);
 
 /*--------------------- Task 2---------------------------- */
 int 		CompareVoxels(Voxel v1, Voxel v2);
-float 		* IntensityProfile(Image *img, Voxel p1, Voxel pn);
-FVoxel 		* DDAAlgorithm(Voxel p1, Voxel pn);
+FloatList 	* IntensityProfile(Image *img, Voxel p1, Voxel pn);
+FVoxelList  * DDAAlgorithm(Voxel p1, Voxel pn);
 int 		LinearInterpolationValue(Image *img, FVoxel v);
 Voxel 		LinearInterpolationCoord(Image *img, FVoxel v);
 void 		DrawLine(Image *img, Voxel p1, Voxel pn, int color);

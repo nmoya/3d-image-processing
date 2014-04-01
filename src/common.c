@@ -134,9 +134,39 @@ float CompTime(timer *tic, timer *toc) /* It computes the time difference */
   }
   return(t);
 }
-int FVoxelSize (FVoxel *queue)
+
+FVoxelList * CreateFVoxelList(int n)
 {
-  int i = 0;
-  while(!queue[i].terminus) i++;
-  return --i;
+  FVoxelList *list = (FVoxelList*)malloc(sizeof(FVoxelList));
+  
+  list->val = (FVoxel*) malloc(sizeof(FVoxel)*n);
+  list->n    = n;
+
+  return list;
 }
+FloatList * CreateFloatList(int n)
+{
+  FloatList *list  = (FloatList*)malloc(sizeof(FloatList));
+
+  list->val  = (float *) malloc(sizeof(float)*n);
+  list->n    = n;
+
+  return list;
+}
+void DestroyFVoxelList(FVoxelList *list)
+{
+  if (list)
+  {
+    free(list->val);
+    free(list);
+  }
+}
+void DestroyFloatList(FloatList *list)
+{
+  if (list)
+  {
+    free(list->val);
+    free(list);
+  }
+}
+

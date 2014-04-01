@@ -411,11 +411,11 @@ int CompareVoxels(Voxel v1, Voxel v2)
 {
   return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
 }
-FVoxel * DDAAlgorithm(Voxel p1, Voxel pn)
+FVoxelList * DDAAlgorithm(Voxel p1, Voxel pn)
 {
   int n, k;
   float dx=0, dy=0, dz=0, DX, DY, DZ;
-  FVoxel *output = NULL;
+  FVoxelList *output = NULL;
 
   if (CompareVoxels(p1, pn))
     n = 1;
@@ -447,19 +447,18 @@ FVoxel * DDAAlgorithm(Voxel p1, Voxel pn)
     }
   }
   //The the first position receives the first point.
-  output = (FVoxel*)malloc((n+1)*sizeof(FVoxel));
-  output[0].x = p1.x;
-  output[0].y = p1.y;
-  output[0].z = p1.z;
-
+  
+  output = CreateFVoxelList(n);
+  output->val[0].x = p1.x;
+  output->val[0].y = p1.y;
+  output->val[0].z = p1.z;
+  
   for (k=1; k<n; k++)
   {
-    output[k].x = output[k-1].x + dx;
-    output[k].y = output[k-1].y + dy;
-    output[k].z = output[k-1].z + dz;
-    output[k].terminus = 0;
+    output->val[k].x = output->val[k-1].x + dx;
+    output->val[k].y = output->val[k-1].y + dy;
+    output->val[k].z = output->val[k-1].z + dz;
   }
-  output[k].terminus = 1;
   return output;
 }
 int LinearInterpolationValue(Image *img, FVoxel v)
@@ -522,34 +521,27 @@ Voxel LinearInterpolationCoord(Image *img, FVoxel v)
   u.z = ROUND(v.z);
   return u;
 }
-float * IntensityProfile(Image *img, Voxel p1, Voxel pn)
+FloatList * IntensityProfile(Image *img, Voxel p1, Voxel pn)
 {
-  FVoxel *queue = DDAAlgorithm(p1, pn);
-  float *output = NULL;
+  FVoxelList *line = DDAAlgorithm(p1, pn);
+  FloatList *list = CreateFloatList(line->n);
   int i = 0;
 
-  //Count the number of points in the line
-  output = AllocFloatArray(FVoxelSize(queue));
+  for(i=0; i<line->n; i++)
+    list->val[i] = LinearInterpolationValue(img, line->val[i]);
 
-  i=0;
-  while(!queue[i].terminus)
-  {
-    output[i] = LinearInterpolationValue(img, queue[i]);
-    printf("%g\n", output[i]);
-    i++;
-  }
-
-  free(queue);
-  return output;
+  DestroyFVoxelList(line);
+  return list;
 }
 void DrawLine(Image *img, Voxel p1, Voxel pn, int color)
 {
-  FVoxel *queue = DDAAlgorithm(p1, pn);
+  FVoxelList *line = DDAAlgorithm(p1, pn);
   Voxel v;
   int i=0;
-  while(!queue[i].terminus)
+  for(i=0; i<line->n; i++)
   {
-    v = LinearInterpolationCoord(img, queue[i++]);
+    v = LinearInterpolationCoord(img, line->val[i]);
     img->val[GetVoxelIndex(img, v)] = color;
   }
+  DestroyFVoxelList(line);
 }

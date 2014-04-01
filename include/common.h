@@ -45,7 +45,6 @@ typedef struct _voxel {
 
 typedef struct _fvoxel{
 	float x, y, z;
-	unsigned int terminus : 1;
 }FVoxel;
 
 typedef struct _dcomplex
@@ -53,6 +52,18 @@ typedef struct _dcomplex
   double r;
   double i;
 } Complex;
+
+typedef struct _fvoxellist
+{
+	FVoxel *val;
+	int n;
+}FVoxelList;
+
+typedef struct _floatqueue 
+{
+	float *val;
+	int n;
+}FloatList;
 
 /** 
  * Common definitions 
@@ -133,7 +144,10 @@ timer *Toc(); /* It marks the final time */
 float CompTime(timer *tic, timer *toc); /* It computes the time difference */
 
 
-int FVoxelSize (FVoxel *queue);
+FVoxelList * CreateFVoxelList(int n);
+FloatList * CreateFloatList(int n);
+void DestroyFVoxelList(FVoxelList *list);
+void DestroyFloatList(FloatList *list);
 
 
 #endif

@@ -22,8 +22,9 @@ int main(int argc, char *argv[])
         Error("Run: ./main <filename> <p1.x> <p1.y> <p1.z> <p2.x> <p2.y> <p2.z> ", "main");
     
     Voxel p1, p2;
+    int i;
     Image *img = ReadImage(argv[1]);
-    float *output = NULL;
+    FloatList *output = NULL;
     p1.x = atoi(argv[2]);
     p1.y = atoi(argv[3]);
     p1.z = atoi(argv[4]);
@@ -34,9 +35,13 @@ int main(int argc, char *argv[])
 
     output = IntensityProfile(img, p1, p2);
     DrawLine(img, p1, p2, 4095);
+    
+    for(i=0; i< output->n; i++)
+        printf("%g ", output->val[i]);
+    printf("\n");
 
     WriteImage(img, "../data/line.scn");
-    free(output);
+    DestroyFloatList(output);
     DestroyImage(img);
     return 0;
 }
