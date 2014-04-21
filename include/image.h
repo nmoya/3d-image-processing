@@ -63,5 +63,7 @@ int 		LinearInterpolationValue(Image *img, FVoxel v);
 Voxel 		LinearInterpolationCoord(Image *img, FVoxel v);
 void 		DrawLine(Image *img, Voxel p1, Voxel pn, int color);
 
+/*--------------------- Task 3---------------------------- */
+Image* MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta);
 
 #endif

@@ -555,3 +555,18 @@ void DrawLine(Image *img, Voxel p1, Voxel pn, int color)
   }
   DestroyFVoxelList(line);
 }
+
+Image* MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta)
+{
+  Image *output = CreateImage(img->xsize, img->ysize, 1);
+  int p;
+  Voxel p0;
+
+  for(p=0; p<img->n; p++)
+  {
+    p0 = GetVoxelCoord(img, p);
+
+  }
+
+  return output;
+}
