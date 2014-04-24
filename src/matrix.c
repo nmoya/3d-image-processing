@@ -149,7 +149,20 @@ Matrix      *RotationMatrix(char axis, float angle)
 
   return(A);
 }
+float      MatrixDot(Matrix *A, Matrix *B)
+{
+  float result = 0;
 
+  if (A->nrows != 1 && B->nrows != 1)
+    Error("Cannot dot matrices", "Dot");
+  if (A->ncols != B->ncols)
+    Error("Cannot dot matrices", "Dot");
+
+  for (int i = 0; i < A->ncols; i++)
+    result += (A->val[i] * B->val[i]);
+
+  return result;
+}
 
 
 Matrix      *ScaleMatrix(float sx, float sy, float sz)
@@ -182,4 +195,25 @@ Matrix      *ScaleMatrix(float sx, float sy, float sz)
   return(A);
 }
 
-
+Matrix      *VoxelToMatrix(Voxel v)
+{
+  Matrix *M = CreateMatrix(1, 4);
+  M->val[AXIS_X] = v.x;
+  M->val[AXIS_Y] = v.y;
+  M->val[AXIS_Z] = v.z;
+  M->val[AXIS_H] = 1.0;
+  return M;
+}
+void       DestroyCubeFaces(CubeFaces *cf)
+{
+  int i = 0;
+  int number_of_faces_in_a_cube = 6;
+  if (cf != NULL)
+  {
+    for (i=0; i< number_of_faces_in_a_cube; i++)
+    {
+      DestroyMatrix(cf[i].orthogonal);
+      DestroyMatrix(cf[i].center);
+    }
+  }
+}

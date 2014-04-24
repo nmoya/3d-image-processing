@@ -556,17 +556,262 @@ void DrawLine(Image *img, Voxel p1, Voxel pn, int color)
   DestroyFVoxelList(line);
 }
 
-Image* MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta)
+CubeFaces* LoadCubeFaces(Image *I) 
 {
-  Image *output = CreateImage(img->xsize, img->ysize, 1);
-  int p;
-  Voxel p0;
+  int Nx = I->xsize;
+  int Ny = I->ysize;
+  int Nz = I->zsize;
+  int i;
 
-  for(p=0; p<img->n; p++)
+  static CubeFaces cf[6];
+  for (i=0; i<6; i++)
   {
-    p0 = GetVoxelCoord(img, p);
-
+    cf[i].orthogonal = CreateMatrix(1, 4);
+    cf[i].center = CreateMatrix(1, 4);
   }
 
+  // Face of Plane XY
+  cf[0].orthogonal->val[AXIS_X] = 0;
+  cf[0].orthogonal->val[AXIS_Y] = 0;
+  cf[0].orthogonal->val[AXIS_Z] = -1;
+  cf[0].orthogonal->val[AXIS_H] = 1;
+
+  cf[0].center->val[AXIS_X] = Nx/2;
+  cf[0].center->val[AXIS_Y] = Ny/2;
+  cf[0].center->val[AXIS_Z] = 0;
+  cf[0].center->val[AXIS_H] = 1;
+
+  // Face of Plane XZ
+  cf[1].orthogonal->val[AXIS_X] = 0;
+  cf[1].orthogonal->val[AXIS_Y] = -1;
+  cf[1].orthogonal->val[AXIS_Z] = 0;
+  cf[1].orthogonal->val[AXIS_H] = 1;
+
+  cf[1].center->val[AXIS_X] = Nx/2;
+  cf[1].center->val[AXIS_Y] = 0;
+  cf[1].center->val[AXIS_Z] = Nz/2;
+  cf[1].center->val[AXIS_H] = 1;
+
+  // Face of Plane YZ
+  cf[2].orthogonal->val[AXIS_X] = -1;
+  cf[2].orthogonal->val[AXIS_Y] = 0;
+  cf[2].orthogonal->val[AXIS_Z] = 0;
+  cf[2].orthogonal->val[AXIS_H] = 1;
+
+  cf[2].center->val[AXIS_X] = 0;
+  cf[2].center->val[AXIS_Y] = Ny/2;
+  cf[2].center->val[AXIS_Z] = Nz/2;
+  cf[2].center->val[AXIS_H] = 1;
+
+  // Face of Opposite Plane XY
+  cf[3].orthogonal->val[AXIS_X] = 0;
+  cf[3].orthogonal->val[AXIS_Y] = 0;
+  cf[3].orthogonal->val[AXIS_Z] = 1;
+  cf[3].orthogonal->val[AXIS_H] = 1;
+
+  cf[3].center->val[AXIS_X] = Nx/2;
+  cf[3].center->val[AXIS_Y] = Ny/2;
+  cf[3].center->val[AXIS_Z] = Nz-1;
+  cf[3].center->val[AXIS_H] = 1;
+
+  // Face of Opposite Plane XZ
+  cf[4].orthogonal->val[AXIS_X] = 0;
+  cf[4].orthogonal->val[AXIS_Y] = 1;
+  cf[4].orthogonal->val[AXIS_Z] = 0;
+  cf[4].orthogonal->val[AXIS_H] = 1;
+
+  cf[4].center->val[AXIS_X] = Nx/2;
+  cf[4].center->val[AXIS_Y] = Ny-1;
+  cf[4].center->val[AXIS_Z] = Nz/2;
+  cf[4].center->val[AXIS_H] = 1;
+
+  // Face of Opposite Plane YZ
+  cf[5].orthogonal->val[AXIS_X] = 1;
+  cf[5].orthogonal->val[AXIS_Y] = 0;
+  cf[5].orthogonal->val[AXIS_Z] = 0;
+  cf[5].orthogonal->val[AXIS_H] = 1;
+
+  cf[5].center->val[AXIS_X] = Nx-1;
+  cf[5].center->val[AXIS_Y] = Ny/2;
+  cf[5].center->val[AXIS_Z] = Nz/2;
+  cf[5].center->val[AXIS_H] = 1;
+
+  return cf;
+}
+
+void ComputeIntersection(Matrix *TransformedVector, Image *img, Matrix *Tn, CubeFaces *cf, int *p1, int *pn)
+{
+  int i;
+  Matrix *Fi, *CiTpo;
+  float lambda[6] = {-1};
+  float FiDotTn, FiDotCiTpo;
+
+  Fi = CreateMatrix(1, 3);
+  CiTpo = CreateMatrix(1, 3);
+  // Computing the lambda for each face
+  for (i = 0; i < 6; i++) {
+    Fi->val[0] = cf[i].orthogonal->val[AXIS_X];
+    Fi->val[1] = cf[i].orthogonal->val[AXIS_Y];
+    Fi->val[2] = cf[i].orthogonal->val[AXIS_Z];
+
+    FiDotTn = MatrixDot(Fi, Tn);
+
+    if (FiDotTn != 0) // Fi not orthogonal to Tn
+    {
+      CiTpo->val[0] = cf[i].center->val[AXIS_X] - TransformedVector->val[0];
+      CiTpo->val[1] = cf[i].center->val[AXIS_Y] - TransformedVector->val[1];
+      CiTpo->val[2] = cf[i].center->val[AXIS_Z] - TransformedVector->val[2];
+
+      FiDotCiTpo = MatrixDot(Fi, CiTpo);
+
+      lambda[i] = (float) FiDotCiTpo/FiDotTn;
+    }
+  }
+
+  *p1 = -1;
+  *pn = -1;
+  for (int i = 0; i < 6; i++) 
+  {
+    if (lambda[i] != -1) 
+    {
+      // Find the voxel of the face[i]
+      Voxel v;
+      v.x = ROUND(TransformedVector->val[0] + lambda[i] * Tn->val[0]);
+      v.y = ROUND(TransformedVector->val[1] + lambda[i] * Tn->val[1]);
+      v.z = ROUND(TransformedVector->val[2] + lambda[i] * Tn->val[2]);
+
+      if (ValidVoxel(img, v)) 
+      {
+        if (*p1 == -1) 
+          *p1 = GetVoxelIndex(img, v);
+        else if (*p1 != -1) 
+        {
+          // if p1 and pn is not a vertex
+          if (*p1 != GetVoxelIndex(img, v)) 
+            *pn = GetVoxelIndex(img, v);
+        }
+      }
+    }
+  }
+
+  // if p1 and pn belong to a same vertex
+  if ((*p1 != -1) && (*pn == 1)) 
+    *pn = *p1;
+
+  if (*p1 > *pn) 
+  {
+    int p_aux = *p1;
+    *p1 = *pn;
+    *pn = p_aux;
+  }
+
+  DestroyMatrix(Fi);
+  DestroyMatrix(CiTpo);
+}
+
+Image* MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta)
+{
+  float intensity;
+  int diagonal=0, p=0, i=0;
+  int Nu, Nv;
+  int p1, pn;
+
+  CubeFaces *cf;
+  Voxel p0, v1, vn;
+  FloatList *LineValues;
+  Matrix *Mt1, *Mt2, *Mrx, *Mry, *Mrz, *Mtemp, *T;
+  Matrix *Norigin, *Nend, *Tnorigin, *Tnend, *Tprojection;
+  Matrix *TransformedVector;
+
+  //The worst case is when the plane is in the diagonal of the scene.
+  diagonal = ROUND(sqrt((double)img->xsize*img->xsize + (double)img->ysize*img->ysize + (double)img->zsize*img->zsize));
+  Nu = Nv = diagonal;
+
+  //Creating the output image of the largest size possible, avoids clipping.
+  Image *output = CreateImage(Nu, Nv, 1);
+
+  //Compute the final transformation matrix T by multiplying the other matrices
+  Mt1 = TranslationMatrix(-Nu/2, -Nv/2, -diagonal);
+  Mt2 = TranslationMatrix(img->xsize/2, img->ysize/2, img->zsize/2);
+  Mrx = RotationMatrix('X', xtheta);
+  Mry = RotationMatrix('Y', ytheta);
+  Mrz = RotationMatrix('Z', ztheta);
+
+  Mtemp = MatrixMultiply(Mrx, Mt1);
+  T     = MatrixMultiply(Mry, Mtemp);
+  DestroyMatrix(Mtemp);
+  Mtemp = T;
+  T     = MatrixMultiply(Mrz, Mtemp);
+  DestroyMatrix(Mtemp);
+  Mtemp = T;
+  T     = MatrixMultiply(Mt2, Mtemp);
+  DestroyMatrix(Mtemp);
+  //End of the computation of the final transformation matrix
+
+  //Normal vector is multiplied by T.
+  Norigin =  CreateMatrix(1, 4);
+  Norigin->val[0] = Norigin->val[1] = Norigin->val[2] = 0;
+  Norigin->val[3] = 1;
+  Tnorigin = MatrixMultiply(Norigin, T);
+
+  //Normal vector at the end is multiplied by T.
+  Nend    =  CreateMatrix(1, 4);
+  Nend->val[0] = Nend->val[1] = 0;
+  Nend->val[2] = Nend->val[3] = 1;
+  Tnend    = MatrixMultiply(Nend, T);
+
+  //A matrix of the differences of Norigin and Nend
+  Tprojection = CreateMatrix(1, 3);
+  Tprojection->val[0] = Tnorigin->val[0] - Tnend->val[0];
+  Tprojection->val[1] = Tnorigin->val[1] - Tnend->val[1];
+  Tprojection->val[2] = Tnorigin->val[2] - Tnend->val[2];
+
+  //Compute a orthogonal vector for each face of the cube and a point in the center of this vector.
+  cf = LoadCubeFaces(img);
+  for(p=0; p<img->n; p++)
+  {
+    p1 = pn = -1;
+    p0 = GetVoxelCoord(img, p);
+    //printf("p0.x: %d p0.y: %d p0.z: %d\n", p0.x, p0.y, p0.z);
+    Mtemp = VoxelToMatrix(p0);
+    //printf("T.nrows: %d T.ncols: %d\tMtemp.nrows: %d Mtemp.ncols: %d\n", T->nrows, T->ncols, Mtemp->nrows, Mtemp->ncols);
+    TransformedVector = MatrixMultiply(Mtemp, T);
+    ComputeIntersection(TransformedVector, img, Tprojection, cf, &p1, &pn);
+
+    if ((p1 != -1) && (pn != -1)) 
+    { 
+      v1 = GetVoxelCoord(img, p1);
+      vn = GetVoxelCoord(img, pn);
+
+      //printf("V1.x: %d V1.y: %d V1.z: %d\t", v1.x, v1.y, v1.z);
+      //printf("Vn.x: %d Vn.y: %d Vn.z: %d\n", vn.x, vn.y, vn.z);
+
+      LineValues = IntensityProfile(img, v1, vn);
+      intensity = LineValues->val[0];
+      for (i=1; i<LineValues->n; i++)
+        if (LineValues->val[i] > intensity)
+          intensity = LineValues->val[i];
+
+      output->val[p] = intensity;
+    }
+    else
+      output->val[p] = 0;
+
+    DestroyMatrix(Mtemp);
+    DestroyMatrix(TransformedVector);
+  }
+
+  DestroyMatrix(Mt1);
+  DestroyMatrix(Mt2);
+  DestroyMatrix(Mrx);
+  DestroyMatrix(Mry);
+  DestroyMatrix(Mrz);
+  DestroyMatrix(T);
+  DestroyMatrix(Norigin);
+  DestroyMatrix(Nend);
+  DestroyMatrix(Tnorigin);
+  DestroyMatrix(Tnend);
+  DestroyMatrix(Tprojection);
+  DestroyCubeFaces(cf);
   return output;
 }

@@ -72,6 +72,7 @@ typedef struct _floatqueue
 #define AXIS_X 0
 #define AXIS_Y 1
 #define AXIS_Z 2
+#define AXIS_H 3
 #define PI          3.1415926536
 #define INTERIOR    0
 #define EXTERIOR    1

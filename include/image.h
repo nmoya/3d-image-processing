@@ -4,6 +4,7 @@
 #include "common.h"
 #include "adjacency.h"
 #include "kernel.h"
+#include "matrix.h"
 
 /* 3D grayscale image */
 
@@ -64,6 +65,8 @@ Voxel 		LinearInterpolationCoord(Image *img, FVoxel v);
 void 		DrawLine(Image *img, Voxel p1, Voxel pn, int color);
 
 /*--------------------- Task 3---------------------------- */
-Image* MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta);
+CubeFaces 	*LoadCubeFaces(Image *I);
+void 		 ComputeIntersection(Matrix *TransformedVector, Image *img, Matrix *Tn, CubeFaces *cf, int *p1, int *pn);
+Image 		*MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta);
 
 #endif
