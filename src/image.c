@@ -768,7 +768,7 @@ Image* MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float zth
 
   //Compute a orthogonal vector for each face of the cube and a point in the center of this vector.
   cf = LoadCubeFaces(img);
-  for(p=0; p<img->n; p++)
+  for(p=0; p<output->n; p++)
   {
     p1 = pn = -1;
     p0 = GetVoxelCoord(img, p);

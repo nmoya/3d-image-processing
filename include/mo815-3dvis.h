@@ -5,5 +5,6 @@
 #include "image.h"
 #include "adjacency.h"
 #include "kernel.h"
+#include "matrix.h"
 
 #endif
