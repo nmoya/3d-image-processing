@@ -30,11 +30,10 @@ int main(int argc, char *argv[])
     Image *img = ReadImage(argv[1]);
     Image *output = NULL;
 
-
     output = MaximumIntensityProfile(img, tx, ty, tz);
-    sprintf(buffer, "../data/%s", argv[2]);
-
-    WriteImage(output, buffer);
+    sprintf(buffer, "../data/%.1f%.1f%.1f%s", tx, ty, tz, argv[2]);
+   
+    WriteImageP2(output, buffer);
     DestroyImage(img);
     DestroyImage(output);
     return 0;

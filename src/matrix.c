@@ -7,7 +7,7 @@ Matrix        *CreateMatrix(int nrows, int ncols)
   M->n = nrows * ncols;
   M->nrows = nrows;
   M->ncols = ncols;
-  M->val = AllocFloatArray(nrows*ncols);
+  M->val = AllocDoubleArray(nrows*ncols);
   return M;
 }
 void          DestroyMatrix(Matrix *M)
@@ -21,29 +21,52 @@ void          DestroyMatrix(Matrix *M)
 }
 Matrix      *MatrixMultiply(Matrix *A, Matrix *B)
 {
+  /*NOT WORKING*/
   if (A->ncols != B->nrows)
     Error("Incompatible matrices for multiplication", "MatrixMultiply");
 
-  Matrix *M = CreateMatrix(B->ncols, A->nrows);
+  Matrix *M = CreateMatrix(A->nrows, B->ncols);
   int i, j, k;
   float sum=0, val_A, val_B;
 
-  for ( i = 0 ; i < A->nrows ; i++ )
+  for ( i = 0 ; i < M->nrows ; i++ )
   {
-    for ( j = 0 ; j < B->ncols ; j++ )
+    for ( j = 0 ; j < M->ncols ; j++ )
     {
-      for ( k = 0 ; k < B->nrows ; k++ )
+      M->val[GetMatrixIndex(M, i, j)] = 0.0;
+      sum = 0.0;
+      for ( k = 0 ; k < A->ncols ; k++ )
       {
         val_A = A->val[GetMatrixIndex(A, i, k)];
-        val_B = A->val[GetMatrixIndex(B, k, j)];
-        sum = sum + val_A * val_B;
+        //printf("Pegando o valor %f de A[%d, %d]\n", val_A, i, k);
+        val_B = B->val[GetMatrixIndex(B, k, j)];
+        //printf("Pegando o valor %f de B[%d, %d]\n", val_B, k, j);
+        sum = sum + (val_A * val_B);
       }
+      //printf("Colocando %f em M[%d, %d]\n", sum, i, j);
       M->val[GetMatrixIndex(M, i, j)] = sum;
-      sum = 0;
     }
   }
   return M;
 }
+// Matrix *MultMatrices(Matrix *A, Matrix *B)
+// {
+//   Matrix *M = NULL; /* M = alpha A*B + beta M */
+//   double  alpha=1.0, beta=0.0; 
+ 
+//   if(A->ncols!=B->nrows)
+//     Error("Cannot multiply matrices","iftMultMatrices");
+
+//    //Compute multiplication between matrices 
+
+//   M = CreateMatrix(A->nrows, B->ncols);
+
+//   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, A->nrows, B->ncols, \
+//         A->ncols, alpha, A->val, A->ncols, B->val, B->ncols, beta, \
+//         M->val, B->ncols);
+
+//   return(M);
+// }
 Matrix      *TranslationMatrix(float tx, float ty, float tz)
 {
   Matrix *A;
@@ -61,9 +84,9 @@ Matrix      *TranslationMatrix(float tx, float ty, float tz)
         A->val[GetMatrixIndex(A,i,j)] = 0.0;
     }
   }
-  A->val[GetMatrixIndex(A,3,0)] = tx;
-  A->val[GetMatrixIndex(A,3,1)] = ty;
-  A->val[GetMatrixIndex(A,3,2)] = tz;
+  A->val[GetMatrixIndex(A,0,3)] = tx;
+  A->val[GetMatrixIndex(A,1,3)] = ty;
+  A->val[GetMatrixIndex(A,2,3)] = tz;
   A->val[GetMatrixIndex(A,3,3)] = 1.0;
 
   return(A);
@@ -87,11 +110,11 @@ Matrix      *RotationMatrix(char axis, float angle)
 
     A->val[GetMatrixIndex(A,0,1)] = 0.0;
     A->val[GetMatrixIndex(A,1,1)] = cosine;
-    A->val[GetMatrixIndex(A,2,1)] = -sine;
+    A->val[GetMatrixIndex(A,2,1)] = sine;
     A->val[GetMatrixIndex(A,3,1)] = 0.0;
 
     A->val[GetMatrixIndex(A,0,2)] = 0.0;
-    A->val[GetMatrixIndex(A,1,2)] = sine;
+    A->val[GetMatrixIndex(A,1,2)] = -sine;
     A->val[GetMatrixIndex(A,2,2)] = cosine;
     A->val[GetMatrixIndex(A,3,2)] = 0.0;
 
@@ -194,10 +217,24 @@ Matrix      *ScaleMatrix(float sx, float sy, float sz)
 
   return(A);
 }
+void PrintMatrix(Matrix *M)
+{
+  int i,c,r;
+
+  i=0; 
+  fprintf(stdout,"\n");
+  for (r=0; r < M->nrows; r++)  {
+    for (c=0; c < M->ncols; c++) {
+      fprintf(stdout,"%6.5lf ", M->val[i]);
+      i++;
+    }      
+    fprintf(stdout,"\n");
+  }
+}
 
 Matrix      *VoxelToMatrix(Voxel v)
 {
-  Matrix *M = CreateMatrix(1, 4);
+  Matrix *M = CreateMatrix(4, 1);
   M->val[AXIS_X] = v.x;
   M->val[AXIS_Y] = v.y;
   M->val[AXIS_Z] = v.z;
@@ -215,5 +252,6 @@ void       DestroyCubeFaces(CubeFaces *cf)
       DestroyMatrix(cf[i].orthogonal);
       DestroyMatrix(cf[i].center);
     }
+    free(cf);
   }
 }

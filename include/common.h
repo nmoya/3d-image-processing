@@ -14,7 +14,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <assert.h>
-//#include <cblas.h>
+#include <cblas.h>
 #include <dirent.h>
 #include <regex.h>
 

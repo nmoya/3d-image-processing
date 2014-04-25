@@ -4,7 +4,7 @@ SRC=./src
 OBJ=./obj
 BIN=./bin
 
-FLAGS= -g  -O0 -Wall -D _DEBUG -Wno-unused-result -fPIC -std=gnu99 -pedantic
+FLAGS= -g  -O0 -Wall -D _DEBUG -Wno-unused-result -fPIC -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
 #FLAGS=-O3 -Wall -Wno-unused-result -fPIC -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
 
 libmo815-3dvis: $(LIB)/libmo815-3dvis.a

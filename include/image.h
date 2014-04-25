@@ -66,7 +66,7 @@ void 		DrawLine(Image *img, Voxel p1, Voxel pn, int color);
 
 /*--------------------- Task 3---------------------------- */
 CubeFaces 	*LoadCubeFaces(Image *I);
-void 		 ComputeIntersection(Matrix *TransformedVector, Image *img, Matrix *Tn, CubeFaces *cf, int *p1, int *pn);
+void 		 ComputeIntersection(Matrix *Tpo, Image *img, Matrix *Tn, CubeFaces *cf, int *p1, int *pn);
 Image 		*MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta);
 
 #endif
