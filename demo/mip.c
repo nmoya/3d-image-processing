@@ -6,12 +6,12 @@ Email: nikolasmoya@gmail.com
 
 Instructions:
 make mip       //Will generate the mip binary
-./mip <filename> <output.pgm>
+./mip <filename> <output.pgm> <xtheta> <ytheta> <ztheta>
 
 Example:
-./mip ../../base/small-foot.scn mip1.pgm
-./mip ../../base/small-foot.scn mip2.pgm
-./mip ../../base/small-foot.scn mip3.pgm
+./mip ../../base/small-foot.scn mip.pgm 0 0 0
+./mip ../../base/small-foot.scn mip.pgm 30 0 0
+./mip ../../base/small-foot.scn mip.pgm 45 0 0
 
 */
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     Image *img = ReadImage(argv[1]);
     Image *output = NULL;
 
-    output = MaximumIntensityProfile(img, tx, ty, tz);
+    output = MaximumIntensityProjection(img, tx, ty, tz);
     sprintf(buffer, "../data/%.1f%.1f%.1f%s", tx, ty, tz, argv[2]);
    
     WriteImageP2(output, buffer);
