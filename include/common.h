@@ -17,6 +17,7 @@
 #include <cblas.h>
 #include <dirent.h>
 #include <regex.h>
+#include <stdarg.h>
 
 /* 
  * Common data types
@@ -143,7 +144,7 @@ timer *Tic(); /* It marks the initial time */
 timer *Toc(); /* It marks the final time */
 
 float CompTime(timer *tic, timer *toc); /* It computes the time difference */
-
+float VoxelDistance(Voxel v1, Voxel v2);
 
 FVoxelList * CreateFVoxelList(int n);
 FloatList * CreateFloatList(int n);

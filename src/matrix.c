@@ -61,9 +61,9 @@ Matrix      *MatrixMultiply(Matrix *A, Matrix *B)
 
 //   M = CreateMatrix(A->nrows, B->ncols);
 
-//   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, A->nrows, B->ncols, \
-//         A->ncols, alpha, A->val, A->ncols, B->val, B->ncols, beta, \
-//         M->val, B->ncols);
+   /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, A->nrows, B->ncols, \
+         A->ncols, alpha, A->val, A->ncols, B->val, B->ncols, beta, \
+         M->val, B->ncols);*/
 
 //   return(M);
 // }
@@ -172,7 +172,7 @@ Matrix      *RotationMatrix(char axis, float angle)
 
   return(A);
 }
-float      MatrixDot(Matrix *A, Matrix *B)
+float      MatrixInnerProduct(Matrix *A, Matrix *B)
 {
   float result = 0;
 
@@ -241,17 +241,31 @@ Matrix      *VoxelToMatrix(Voxel v)
   M->val[AXIS_H] = 1.0;
   return M;
 }
-void       DestroyCubeFaces(CubeFaces *cf)
+
+//Dependency: #include <stdarg.h>
+Matrix      *ComputeTransformation(int n_args, ...)
 {
-  int i = 0;
-  int number_of_faces_in_a_cube = 6;
-  if (cf != NULL)
+  int i;
+  Matrix *A, *B, *T, *Aux;
+
+  if (n_args <= 1)
+    Error("Need at least 2 matrices", "ComputeTransformation");
+
+  va_list ap;
+  va_start(ap, n_args);
+
+  A = va_arg(ap, Matrix*);
+  B = va_arg(ap, Matrix*);
+  Aux = MatrixMultiply(B, A);
+  for (i=2; i< n_args; i++)
   {
-    for (i=0; i< number_of_faces_in_a_cube; i++)
-    {
-      DestroyMatrix(cf[i].orthogonal);
-      DestroyMatrix(cf[i].center);
-    }
-    free(cf);
+    A = va_arg(ap, Matrix*);
+    T = MatrixMultiply(A, Aux);
+    DestroyMatrix(Aux);
+    Aux = T;
   }
+  va_end(ap);
+  if (n_args == 2)
+    return Aux;
+  return T;
 }

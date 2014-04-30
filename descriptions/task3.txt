@@ -1,0 +1,9 @@
+Implement functions 
+
+float *IntensityProfile(Image *img, int p1, int pn);
+void DrawLine(Image *img, int p1, int pn);
+
+in libmo815-3dvis. These functions must return the intensity profile
+along a line from voxel p1 to voxel pn, found by 3D linear
+interpolation, and substitute the voxels along the line in the image
+by the maximum intensity value for that image, respectively.

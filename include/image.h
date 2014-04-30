@@ -17,6 +17,13 @@ typedef struct _image {
 			       voxel and its coordinates */
 } Image;
 
+/* Structure that stores for each face of the volume a vector that is orthogonal and a central point in this vector */
+typedef struct _volumefaces {
+	Matrix *orthogonal;
+	Matrix *center;
+} VolumeFaces;
+
+
 /* Voxel and coordinate conversions */
 
 #define GetXCoord(s,p) (((p) % (((s)->xsize)*((s)->ysize))) % (s)->xsize)
@@ -56,7 +63,9 @@ Image 		* GetAxialSlice(Image *img, int slice);
 Image 		* GetCoronalSlice(Image *img, int slice);
 void 		WriteImageP2(Image *img, char filename[]);
 
-/*--------------------- Task 2---------------------------- */
+
+/*Move functions below this line to Visualization files */
+/* --------------------- Task 2---------------------------- */
 int 		CompareVoxels(Voxel v1, Voxel v2);
 FloatList 	* IntensityProfile(Image *img, Voxel p1, Voxel pn);
 FVoxelList  * DDAAlgorithm(Voxel p1, Voxel pn);
@@ -65,8 +74,14 @@ Voxel 		LinearInterpolationCoord(Image *img, FVoxel v);
 void 		DrawLine(Image *img, Voxel p1, Voxel pn, int color);
 
 /*--------------------- Task 3---------------------------- */
-CubeFaces 	*LoadCubeFaces(Image *I);
-void 		 ComputeIntersection(Matrix *Tpo, Image *img, Matrix *Tn, CubeFaces *cf, int *p1, int *pn);
-Image 		*MaximumIntensityProfile(Image *img, float xtheta, float ytheta, float ztheta);
+VolumeFaces *CreateVolumeFaces(Image *I);
+void		 DestroyVolumeFaces(VolumeFaces *vf);
+int 		 ComputeIntersection(Matrix *Tpo, Image *img, Matrix *Tn, VolumeFaces *cf, int *p1, int *pn);
+Image 		*MaximumIntensityProjection(Image *img, float xtheta, float ytheta, float ztheta);
+
+
+/*---------------------- Task 4---------------------------*/
+Image 		*RayCasting(Image *img, float xtheta, float ytheta, float ztheta);
+
 
 #endif

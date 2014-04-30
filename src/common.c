@@ -135,6 +135,13 @@ float CompTime(timer *tic, timer *toc) /* It computes the time difference */
   return(t);
 }
 
+float VoxelDistance(Voxel u, Voxel v)
+{
+  return sqrtf((u.x-v.x)*(u.x-v.x)+(u.y-v.y)*(u.y-v.y)+(u.z-v.z)*(u.z-v.z));
+}
+  
+
+
 FVoxelList * CreateFVoxelList(int n)
 {
   FVoxelList *list = (FVoxelList*)malloc(sizeof(FVoxelList));
