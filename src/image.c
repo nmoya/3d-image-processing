@@ -112,6 +112,12 @@ void       DestroyVolumeFaces(VolumeFaces *cf)
 
 
 ******************/
+void CopyVoxelSize(Image *img1, Image *img2)
+{
+  img2->dx = img1->dx;
+  img2->dy = img1->dy;
+  img2->dz = img1->dz;
+}
 
 char ValidVoxel(Image *img, Voxel u)
 {
@@ -172,6 +178,43 @@ Image *CreateImage(int xsize, int ysize, int zsize)
 
  
  return(img);
+}
+FImage *CreateFImage(int xsize, int ysize, int zsize)
+{
+  FImage *img=NULL;
+  int    i;
+
+  img = (FImage *) calloc(1,sizeof(FImage));
+  img->n     = xsize*ysize*zsize;
+  img->xsize = xsize; 
+  img->ysize = ysize; 
+  img->zsize = zsize; 
+  img->dx    = img->dy = img->dz = 1.0;
+  img->val   = AllocFloatArray(img->n);
+  img->tby   = AllocIntArray(img->ysize);
+  img->tbz   = AllocIntArray(img->zsize);
+
+  img->tby[0] = 0;
+  for (i=1; i < img->ysize; i++)
+    img->tby[i]=img->tby[i-1]+img->xsize;
+
+  img->tbz[0] = 0;
+  for (i=1; i < img->zsize; i++)
+    img->tbz[i]=img->tbz[i-1]+img->xsize*img->ysize;
+
+ 
+ return(img);
+}
+void DestroyFImage(FImage *img)
+{
+
+  if(img != NULL){
+    free(img->val); 
+    free(img->tby);
+    free(img->tbz);
+    free(img);
+  }
+
 }
 
 void DestroyImage(Image *img)
@@ -354,6 +397,28 @@ void WriteImageP2(Image *img, char filename[])
 // }
 
 /* ----------------- Voxel-based algorithms ---------------------*/
+Image *Normalize(Image *img, float minval, float maxval)
+{
+  Image *nimg = CreateImage(img->xsize, img->ysize, img->zsize);
+  int p;
+
+  // if (img->Cb != NULL) 
+  //   CopyCbCr(img,nimg);
+  CopyVoxelSize(img,nimg);
+
+  img->minval  = MinimumValue(img);
+  img->maxval  = MaximumValue(img);
+  nimg->maxval = maxval;
+  nimg->minval = minval;
+
+  if (img->minval < img->maxval){
+    for (p=0; p < img->n; p++) 
+      nimg->val[p] = (int)((maxval-minval)*((float)img->val[p]-(float)img->minval)/((float)img->maxval-(float)img->minval) + minval);
+  }else{
+    Error("Cannot normalize empty image","Normalize");
+  }
+  return(nimg);
+}
 
 int MinimumValue(Image *img)
 {
@@ -927,7 +992,166 @@ float PhongShading(int p, float distance, float diagonal, Matrix *N, Matrix *Obs
   }
   return phong_val;
 }
-int VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Matrix *normalTable, Matrix*ObserverVector, Image *opacity)
+
+
+// //XX: Check this
+// Image *GradientImage(Image *img)
+// {
+//   Image *output = CreateImage(img->xsize, img->ysize, img->zsize);
+//   AdjRel *radius1 = Spheric(1);
+
+//   int p, q, i;
+//   Voxel u, v;
+//   float sum;
+//   for (p=0; p < output->n; p++) 
+//   {
+//     u = GetVoxelCoord(img, p);
+//     sum = 0.0;
+//     for (i=1; i < radius1->n; i++) 
+//     {
+//       v = GetAdjacentVoxel(radius1, u, i);
+//       if (ValidVoxel(img,v))
+//       {
+//         q = GetVoxelIndex(img,v);
+//         sum = sum + (img->val[q] - img->val[p]);
+//       }
+//     }
+//     output->val[p] = sum;
+//   }
+//   return output;
+// }
+void ImageGradientMagnitudeAndIndex(Image *img, Image *gradientImg, Image *normalIndexImg, AdjRel *A)
+{
+  float   dist, gx , gy, gz, gModule, alfa, gamma;
+  int     i, p, q;
+  Voxel   u,v;
+  Vector  unitNormalVector;
+  float   *mag = AllocFloatArray(A->n);
+
+  CopyVoxelSize(img, gradientImg);
+  CopyVoxelSize(img, normalIndexImg);
+
+  for (i=0; i < A->n; i++)
+      mag[i]=sqrtf(A->adj[i].dx*A->adj[i].dx+A->adj[i].dy*A->adj[i].dy+A->adj[i].dz*A->adj[i].dz);
+
+   for (u.z=0; u.z < img->zsize; u.z++)
+      for (u.y=0; u.y < img->ysize; u.y++)
+         for (u.x=0; u.x < img->xsize; u.x++) {
+      p = GetVoxelIndex(img,u);
+      gx = gy = gz = 0.0;
+        for (i=1; i < A->n; i++) {
+         v.x = u.x + A->adj[i].dx;
+         v.y = u.y + A->adj[i].dy;
+         v.z = u.z + A->adj[i].dz;
+         if (ValidVoxel(img,v)){
+            q = GetVoxelIndex(img,v);
+            dist = img->val[q]-img->val[p];
+                  gx  += dist*A->adj[i].dx/mag[i];
+            gy  += dist*A->adj[i].dy/mag[i];
+            gz  += dist*A->adj[i].dz/mag[i];
+         }              
+      }
+            gModule = sqrtf(gx*gx + gy*gy + gz*gz);
+            gradientImg->val[p]= ROUND(gModule);   
+            if (gModule > 0.0)     
+            {
+               unitNormalVector.x = (-1) * gx / gModule;
+               unitNormalVector.y = (-1) * gy / gModule;
+               unitNormalVector.z = (-1) * gz / gModule;
+               gamma = asin(unitNormalVector.z) * 180 / PI;
+               if (unitNormalVector.x != 0.0)
+               // Dúvida para Falcao
+                  alfa = atan(unitNormalVector.y / unitNormalVector.x) * 180 / PI;
+               else
+                 alfa = 0.0;
+               if (alfa < 0)
+                  alfa = alfa + 360; 
+               normalIndexImg->val[p] = ROUND(360 * (gamma + 90) + alfa + 1);
+            }
+            else
+            {
+               normalIndexImg->val[p] = 0;
+            }
+         }
+
+  free(mag);
+  //WriteImage(gradientImg, "/home/fedora/grad.scn");
+  //WriteImage(normalIndexImg, "/home/fedora/normgrad.scn");
+}
+
+FImage *CreateOpacityImage(Image *img, Image *gradient)
+{
+  FImage *output = CreateFImage(img->xsize, img->ysize, img->zsize);
+
+  int p;
+  int g = 1000;
+  float l1s =  900, l2s = 950, l3s = 1050, l4s = 1100, alfaTs = 2.0, gs = 1000;
+  float l1b = 1101, l2b = 1200, l3b = 2400, l4b = 2500, alfaTb = 1.0, gb = 1000;
+  int intensity;
+  float ogp;
+  float oip;
+
+
+
+  for (p=0; p<output->n; p++)
+  {
+    intensity = img->val[p];
+    
+    ogp = 1.0 / (1+exp(-gradient->val[p] + g));
+
+    //Skin
+    if (intensity <= l1s)
+      oip = 0.0;
+    if ((intensity > l1s) && (intensity <= l2s))
+      oip = (intensity - l1s) / (l2s - l1s);
+    if ((intensity > l2s) && (intensity <= l3s))
+      oip = alfaTs;
+    if ((intensity > l3s) && (intensity <= l4s))
+      oip = (l4s - intensity) / (l4s - l3s);
+
+    //Bone
+    if ((intensity > l4s) && (intensity <= l1b))
+      oip = 0.0;
+    if ((intensity > l1b) && (intensity <= l2b))
+      oip = (intensity - l1b) / (l2b - l1b);
+    if ((intensity > l2b) && (intensity <= l3b))
+      oip = alfaTb;
+    if ((intensity > l3b) && (intensity <= l4b))
+      oip = (l4b - intensity) / (l4b - l3b);
+
+    if (intensity > l4s)
+      g = gb;
+    else
+      g = gs;
+
+    output->val[p] = ogp * oip;
+  }
+  return output;
+}
+Matrix *CreateNormalLookUpMatrix()
+{
+  //Matrix *table = CreateMatrix(64800, 3);
+  Matrix *table = CreateMatrix(65160, 3);
+
+  int   row = 0;
+  int gamma, alpha;
+  float gamma_rad, alpha_rad;
+  for (gamma=-90; gamma <= 90; gamma++)
+  {
+    gamma_rad = (PI*gamma)/180.0;
+    for (alpha=0; alpha <= 359; alpha++)
+    {
+      alpha_rad = (PI * alpha)/180.0;
+      table->val[GetMatrixIndex(table, row, AXIS_X)] = cos(gamma_rad)*cos(alpha_rad);
+      table->val[GetMatrixIndex(table, row, AXIS_Y)] = cos(gamma_rad)*sin(alpha_rad);
+      table->val[GetMatrixIndex(table, row, AXIS_Z)] = sin(gamma_rad);
+      row++;
+    }
+  }
+  //printf("Number of rows: %d\n", row);
+  return table;
+}
+int VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Image *normalIndexImg, Matrix *normalTable, Matrix*ObserverVector, FImage *opacity)
 {
   FVoxelList *FVoxels = DDAAlgorithm(p1, pn);
   Voxel v;
@@ -950,12 +1174,10 @@ int VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Matrix *normal
       p = GetVoxelIndex(scene, v);
       if (opacity->val[p] > 0)
       {
-        //X: Maybe FVoxelDistance?
         distance = VoxelDistance(v, p0);
-        //This is the image normal. iftSetSceneNormal
-        N->val[AXIS_X] = normalTable->val[GetMatrixIndex(normalTable, 0, AXIS_X)];
-        N->val[AXIS_Y] = normalTable->val[GetMatrixIndex(normalTable, 0, AXIS_Y)];
-        N->val[AXIS_Z] = normalTable->val[GetMatrixIndex(normalTable, 0, AXIS_Z)];
+        N->val[AXIS_X] = normalTable->val[GetMatrixIndex(normalTable, normalIndexImg->val[p], AXIS_X)];
+        N->val[AXIS_Y] = normalTable->val[GetMatrixIndex(normalTable, normalIndexImg->val[p], AXIS_Y)];
+        N->val[AXIS_Z] = normalTable->val[GetMatrixIndex(normalTable, normalIndexImg->val[p], AXIS_Z)];
         opac = opacity->val[p];
         phong_val = opac * PhongShading(p, distance, diagonal, N, ObserverVector) * acc_opacity;
         intensity = phong_val * scene->val[p];
@@ -964,95 +1186,15 @@ int VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Matrix *normal
 
     }
   }
-  return intensity;
-}
-
-//XX: Check this
-Image *GradientImage(Image *img)
-{
-  Image *output = CreateImage(img->xsize, img->ysize, img->zsize);
-  AdjRel *radius1 = Spheric(1);
-
-  int p, q, i;
-  Voxel u, v;
-  float sum;
-  for (p=0; p < output->n; p++) 
-  {
-    u = GetVoxelCoord(img, p);
-    sum = 0.0;
-    for (i=1; i < radius1->n; i++) 
-    {
-      v = GetAdjacentVoxel(radius1, u, i);
-      if (ValidVoxel(img,v))
-      {
-        q = GetVoxelIndex(img,v);
-        sum = sum + (img->val[q] - img->val[p]);
-      }
-    }
-    output->val[p] = sum;
-  }
-  return output;
-}
-
-Image *CreateOpacityImage(Image *img)
-{
-  Image *output = CreateImage(img->xsize, img->ysize, img->zsize);
-  Image *gradient = GradientImage(img);
-
-  int p;
-  int g = 1000;
-  int l1, l2, l3, l4;
-  l1 = 900; l2 = 950; l3 = 1050; l4 = 1100;
-  float alfa_t = 2.0;
-  double ogp;
-  double oip;
-
-  for (p=0; p<output->n; p++)
-  {
-    ogp = 1.0 / (1+exp(-gradient->val[p] + g));
-
-    if (img->val[p] < l1)
-      oip = 0;
-    else if(img->val[p] >= l1 && img->val[p] <= l2)
-      oip = (img->val[p]-l1) / (l2-l1);
-    else if (img->val[p] >= l2 && img->val[p] <= l3)
-      oip = alfa_t;
-    else
-      oip = (l4 - img->val[p]) / (l4 - l3);
-
-    output->val[p] = ogp * oip;
-  }
-  return output;
-}
-Matrix *CreateNormalLookUpMatrix()
-{
-  Matrix *table = CreateMatrix(64800, 3);
-
-  int   row = 0;
-  int gamma, alpha;
-  float gamma_rad, alpha_rad;
-  for (gamma=-90; gamma <= 90; gamma++)
-  {
-    gamma_rad = (PI*gamma)/180.0;
-    for (alpha=0; alpha <= 359; alpha++)
-    {
-      alpha_rad = (PI * alpha)/180.0;
-      table->val[GetMatrixIndex(table, row, AXIS_X)] = cos(gamma_rad)*cos(alpha_rad);
-      table->val[GetMatrixIndex(table, row, AXIS_Y)] = cos(gamma_rad)*sin(alpha_rad);
-      table->val[GetMatrixIndex(table, row, AXIS_Z)] = sin(gamma_rad);
-      row++;
-    }
-  }
-  printf("Number of rows: %d\n", row);
-  return table;
+  return ROUND(intensity);
 }
 Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
 {
   int diagonal=0, p=0, Nu, Nv;
   int p1, pn;
 
-
-  Image *opacity;
+  AdjRel *radius1 = Spheric(1);
+  FImage *opacity;
   Matrix *normalTable;
 
   VolumeFaces *vf;
@@ -1110,8 +1252,11 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
   Tn->val[2] = Tnend->val[2] - Tnorigin->val[2];
 
   //Compute a orthogonal vector for each face of the cube and a point in the center of this vector.
+  Image *gradientImg = CreateImage(img->xsize,img->ysize,img->zsize);
+  Image *normalIndexImg = CreateImage(img->xsize,img->ysize,img->zsize);
+  ImageGradientMagnitudeAndIndex(img, gradientImg, normalIndexImg, radius1);
   vf = CreateVolumeFaces(img);
-  opacity = CreateOpacityImage(img);
+  opacity = CreateOpacityImage(img, gradientImg);
   normalTable = CreateNormalLookUpMatrix();
   for(p=0; p<output->n; p++)
   {
@@ -1127,13 +1272,22 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
       v1 = GetVoxelCoord(img, p1);
       vn = GetVoxelCoord(img, pn);
       
-      output->val[p] = VolumeRenderValue(p0, v1, vn, img, normalTable, ObserverVector, opacity);
-      
+      int val = VolumeRenderValue(p0, v1, vn, img, normalIndexImg, normalTable, ObserverVector, opacity);
+      //if (val)
+        //printf("%d\n", val);
+      output->val[p] = val;
     }
+    else
+      output->val[p] = 0;
 
     DestroyMatrix(Mtemp);
     DestroyMatrix(Tpo);
   }
+
+  output = Normalize(output, 0, 255);
+  // for (p=0; p<output->n; p++)
+  //   if (output->val[p])
+  //     printf("%d\n", output->val[p]);
 
   DestroyMatrix(Mt1);
   DestroyMatrix(Mt2);
@@ -1149,7 +1303,8 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
   DestroyMatrix(Result);
   DestroyMatrix(ObserverVector);
   DestroyMatrix(normalTable);
-  DestroyImage(opacity);
+  DestroyAdjRel(radius1);
+  DestroyFImage(opacity);
   DestroyVolumeFaces(vf);
   return output;
 }

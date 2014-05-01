@@ -17,6 +17,15 @@ typedef struct _image {
 			       voxel and its coordinates */
 } Image;
 
+typedef struct _fimage {
+  int    xsize,ysize,zsize; /* number of voxels along x, y, and z */
+  int    n, maxval, minval; /* number of voxels */
+  float   *val;               /* list of voxel intensities */ 
+  float  dx,dy,dz;          /* voxel dimensions in mm along x, y, and z */
+  int   *tby, *tbz;         /* look-up tables to speed up conversions between 
+			       voxel and its coordinates */
+} FImage;
+
 /* Structure that stores for each face of the volume a vector that is orthogonal and a central point in this vector */
 typedef struct _volumefaces {
 	Matrix *orthogonal;
@@ -34,10 +43,13 @@ typedef struct _volumefaces {
 Voxel   GetVoxelCoord(Image *img, int p); 
 char    ValidVoxel(Image *img, Voxel u);
 int 	VoxelValue(Image *img, Voxel v);
+void 	CopyVoxelSize(Image *img1, Image *img2);
 
 /* Allocate memory to store image */ 
 Image        *CreateImage(int xsize, int ysize, int zsize); 
 void          DestroyImage(Image *img); /* Free memory */
+FImage        *CreateFImage(int xsize, int ysize, int zsize); 
+void          DestroyFImage(FImage *img); /* Free memory */
 Image        *ReadImage(char *filename); /* Read image from a file */
 void          WriteImage(Image *img, char *filename); /* Write image into a file */ 
 
@@ -47,6 +59,7 @@ void          WriteImage(Image *img, char *filename); /* Write image into a file
 int           MaximumValue(Image *img); /* Maximum voxel intensity */
 int           MinimumValue(Image *img); /* Minimum voxel intensity */
 Image        *WindowAndLevel(Image *img, int window, int level, int H); /* Intensity transformation */
+Image        *Normalize(Image *img, float minval, float maxval);
 
 /*-------------------- Adjacency-based methods ------------------------- */
 
