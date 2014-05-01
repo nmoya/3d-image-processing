@@ -976,11 +976,11 @@ float PhongShading(int p, float distance, float diagonal, Matrix *N, Matrix *Obs
   if (cos_theta > 1.0) 
     cos_theta=1.0;
   
-  if (cos_theta > Epsilon) /* |angle| <= 90° */
+  if (cos_theta > Epsilon) 
   {  
     cos_2theta = 2*cos_theta*cos_theta - 1;
 
-    if (cos_2theta <= Epsilon) /* |angle| >= 45° */
+    if (cos_2theta <= Epsilon)
       power = 0.;
     else 
     {
@@ -993,33 +993,6 @@ float PhongShading(int p, float distance, float diagonal, Matrix *N, Matrix *Obs
   return phong_val;
 }
 
-
-// //XX: Check this
-// Image *GradientImage(Image *img)
-// {
-//   Image *output = CreateImage(img->xsize, img->ysize, img->zsize);
-//   AdjRel *radius1 = Spheric(1);
-
-//   int p, q, i;
-//   Voxel u, v;
-//   float sum;
-//   for (p=0; p < output->n; p++) 
-//   {
-//     u = GetVoxelCoord(img, p);
-//     sum = 0.0;
-//     for (i=1; i < radius1->n; i++) 
-//     {
-//       v = GetAdjacentVoxel(radius1, u, i);
-//       if (ValidVoxel(img,v))
-//       {
-//         q = GetVoxelIndex(img,v);
-//         sum = sum + (img->val[q] - img->val[p]);
-//       }
-//     }
-//     output->val[p] = sum;
-//   }
-//   return output;
-// }
 void ImageGradientMagnitudeAndIndex(Image *img, Image *gradientImg, Image *normalIndexImg, AdjRel *A)
 {
   float   dist, gx , gy, gz, gModule, alfa, gamma;
@@ -1051,32 +1024,29 @@ void ImageGradientMagnitudeAndIndex(Image *img, Image *gradientImg, Image *norma
             gz  += dist*A->adj[i].dz/mag[i];
          }              
       }
-            gModule = sqrtf(gx*gx + gy*gy + gz*gz);
-            gradientImg->val[p]= ROUND(gModule);   
-            if (gModule > 0.0)     
-            {
-               unitNormalVector.x = (-1) * gx / gModule;
-               unitNormalVector.y = (-1) * gy / gModule;
-               unitNormalVector.z = (-1) * gz / gModule;
-               gamma = asin(unitNormalVector.z) * 180 / PI;
-               if (unitNormalVector.x != 0.0)
-               // Dúvida para Falcao
-                  alfa = atan(unitNormalVector.y / unitNormalVector.x) * 180 / PI;
-               else
-                 alfa = 0.0;
-               if (alfa < 0)
-                  alfa = alfa + 360; 
-               normalIndexImg->val[p] = ROUND(360 * (gamma + 90) + alfa + 1);
-            }
-            else
-            {
-               normalIndexImg->val[p] = 0;
-            }
-         }
+      gModule = sqrtf(gx*gx + gy*gy + gz*gz);
+      gradientImg->val[p]= ROUND(gModule);   
+      if (gModule > 0.0)     
+      {
+         unitNormalVector.x = (-1) * gx / gModule;
+         unitNormalVector.y = (-1) * gy / gModule;
+         unitNormalVector.z = (-1) * gz / gModule;
+         gamma = asin(unitNormalVector.z) * 180 / PI;
+         if (unitNormalVector.x != 0.0)
+            alfa = atan(unitNormalVector.y / unitNormalVector.x) * 180 / PI;
+         else
+           alfa = 0.0;
+         if (alfa < 0)
+            alfa = alfa + 360; 
+         normalIndexImg->val[p] = ROUND(360 * (gamma + 90) + alfa + 1);
+      }
+      else
+      {
+         normalIndexImg->val[p] = 0;
+      }
+   }
 
   free(mag);
-  //WriteImage(gradientImg, "/home/fedora/grad.scn");
-  //WriteImage(normalIndexImg, "/home/fedora/normgrad.scn");
 }
 
 FImage *CreateOpacityImage(Image *img, Image *gradient)
@@ -1090,8 +1060,6 @@ FImage *CreateOpacityImage(Image *img, Image *gradient)
   int intensity;
   float ogp;
   float oip;
-
-
 
   for (p=0; p<output->n; p++)
   {
@@ -1130,10 +1098,10 @@ FImage *CreateOpacityImage(Image *img, Image *gradient)
 }
 Matrix *CreateNormalLookUpMatrix()
 {
-  //Matrix *table = CreateMatrix(64800, 3);
+  //65160 = 361*180. Number of iterations below
   Matrix *table = CreateMatrix(65160, 3);
 
-  int   row = 0;
+  int row = 0;
   int gamma, alpha;
   float gamma_rad, alpha_rad;
   for (gamma=-90; gamma <= 90; gamma++)
@@ -1210,6 +1178,7 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
   diagonal = ROUND(sqrt((double) (img->xsize*img->xsize)+(img->ysize*img->ysize)+(img->zsize*img->zsize)));
   Nu = Nv = diagonal;
   Image *output = CreateImage(Nu, Nv, 1);
+  Image *normalized;
 
   //Compute the final transformation matrix T by multiplying the other matrices
   Mt1 = TranslationMatrix(-Nu/2, -Nv/2, -diagonal);  
@@ -1220,18 +1189,16 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
 
   T = ComputeTransformation(5, Mt1, Mrx, Mry, Mrz, Mt2);
 
-  //Rinv = ComputeTransformation(2, Mrx, Mry);
+  //Computing the observer vector
   Mtemp = CreateMatrix(1, 4);
   Mtemp->val[AXIS_X] = Mtemp->val[AXIS_Y] = 0;
   Mtemp->val[AXIS_Z] = -1;
   Mtemp->val[AXIS_H] = 1;
-  //Result = MatrixMultiply(Rinv, Mtemp);
   Result = ComputeTransformation(3, Mrx, Mry, Mtemp);
   ObserverVector->val[AXIS_X] = Result->val[AXIS_X];
   ObserverVector->val[AXIS_Y] = Result->val[AXIS_Y];
   ObserverVector->val[AXIS_Z] = Result->val[AXIS_Z];
   DestroyMatrix(Mtemp);
-
 
   //Normal vector is multiplied by T.
   Norigin =  CreateMatrix(4, 1);
@@ -1273,8 +1240,6 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
       vn = GetVoxelCoord(img, pn);
       
       int val = VolumeRenderValue(p0, v1, vn, img, normalIndexImg, normalTable, ObserverVector, opacity);
-      //if (val)
-        //printf("%d\n", val);
       output->val[p] = val;
     }
     else
@@ -1284,7 +1249,7 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
     DestroyMatrix(Tpo);
   }
 
-  output = Normalize(output, 0, 255);
+  normalized = Normalize(output, 0, 255);
   // for (p=0; p<output->n; p++)
   //   if (output->val[p])
   //     printf("%d\n", output->val[p]);
@@ -1306,5 +1271,6 @@ Image *RayCasting(Image *img, float xtheta, float ytheta, float ztheta)
   DestroyAdjRel(radius1);
   DestroyFImage(opacity);
   DestroyVolumeFaces(vf);
-  return output;
+  DestroyImage(output);
+  return normalized;
 }

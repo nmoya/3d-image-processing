@@ -95,6 +95,11 @@ Image 		*MaximumIntensityProjection(Image *img, float xtheta, float ytheta, floa
 
 /*---------------------- Task 4---------------------------*/
 Image 		*RayCasting(Image *img, float xtheta, float ytheta, float ztheta);
+int       VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Image *normalIndexImg, Matrix *normalTable, Matrix*ObserverVector, FImage *opacity);
+Matrix    *CreateNormalLookUpMatrix();
+FImage    *CreateOpacityImage(Image *img, Image *gradient);
+void      ImageGradientMagnitudeAndIndex(Image *img, Image *gradientImg, Image *normalIndexImg, AdjRel *A);
+float     PhongShading(int p, float distance, float diagonal, Matrix *N, Matrix *ObserverVector);
 
 
 #endif
