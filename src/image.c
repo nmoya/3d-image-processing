@@ -16,6 +16,7 @@ VolumeFaces* CreateVolumeFaces(Image *I)
   int i;
 
   VolumeFaces *vf = (VolumeFaces*) malloc(sizeof(VolumeFaces)*6);
+  
   for (i=0; i<6; i++)
   {
     vf[i].orthogonal = CreateMatrix(1, 4);

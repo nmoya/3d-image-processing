@@ -6,5 +6,6 @@
 #include "adjacency.h"
 #include "kernel.h"
 #include "matrix.h"
+#include "visualization.h"
 
 #endif

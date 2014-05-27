@@ -5,13 +5,13 @@ Number: 144678
 Email: nikolasmoya@gmail.com
 
 Instructions:
-make task3       //Will generate the mip binary
-./task3 <filename> <output.pgm> <xtheta> <ytheta> <ztheta>
+make task4       //Will generate the volume rendering binary
+./task4 <filename> <output.pgm> <xtheta> <ytheta> <ztheta>
 
 Example:
-./task3 ../../base/small-foot.scn mip.pgm 0 0 
-./task3 ../../base/small-foot.scn mip.pgm 30 0 
-./task3 ../../base/small-foot.scn mip.pgm 45 0 
+./task4 ../../base/small-foot.scn volumerendering.pgm 0 0 
+./task4 ../../base/small-foot.scn volumerendering.pgm 30 0 
+./task4 ../../base/small-foot.scn volumerendering.pgm 45 0 
 
 */
 

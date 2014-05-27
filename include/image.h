@@ -26,12 +26,12 @@ typedef struct _fimage {
 			       voxel and its coordinates */
 } FImage;
 
+
 /* Structure that stores for each face of the volume a vector that is orthogonal and a central point in this vector */
 typedef struct _volumefaces {
-	Matrix *orthogonal;
-	Matrix *center;
+  Matrix *orthogonal;
+  Matrix *center;
 } VolumeFaces;
-
 
 /* Voxel and coordinate conversions */
 
