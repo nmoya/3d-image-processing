@@ -37,7 +37,8 @@ Vector 		   NormalizeVector(Vector v);
 float 		   VectorMagnitude(Vector v);
 Vector 		   TransformVector(Matrix *A, Vector u);
 Point 		   TransformPoint(Matrix *A, Point u);
-
+char 		   PointsAreEqual(Point u1, Point u2);
+float 		   PointDistance(Point u, Point v);
 
 
 

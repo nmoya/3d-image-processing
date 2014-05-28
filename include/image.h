@@ -44,10 +44,15 @@ typedef struct _volumefaces {
 #define GetZCoord(s,p) ((p) / (((s)->xsize)*((s)->ysize)))
 #define GetVoxelIndex(s,v) ((v.x)+(s)->tby[(v.y)]+(s)->tbz[(v.z)])
 
+#define FGetXCoord(s,p) (((p) % (((s)->xsize)*((s)->ysize))) % (s)->xsize)
+#define FGetYCoord(s,p) (((p) % (((s)->xsize)*((s)->ysize))) / (s)->xsize)
+#define FGetZCoord(s,p) ((p) / (((s)->xsize)*((s)->ysize)))
+#define FGetVoxelIndex(s,v) ((v.x)+(s)->tby[(v.y)]+(s)->tbz[(v.z)])
+
 Voxel   GetVoxelCoord(Image *img, int p); 
 char    ValidVoxel(Image *img, Voxel u);
-int 	VoxelValue(Image *img, Voxel v);
-void 	CopyVoxelSize(Image *img1, Image *img2);
+int 	  VoxelValue(Image *img, Voxel v);
+void 	  CopyVoxelSize(Image *img1, Image *img2);
 
 /* Allocate memory to store image */ 
 Image        *CreateImage(int xsize, int ysize, int zsize); 
@@ -56,7 +61,13 @@ FImage        *CreateFImage(int xsize, int ysize, int zsize);
 void          DestroyFImage(FImage *img); /* Free memory */
 Image        *ReadImage(char *filename); /* Read image from a file */
 void          WriteImage(Image *img, char *filename); /* Write image into a file */ 
+void          WriteImageP6(Image *img, char *filename);
 Color         RGBtoYCbCr(Color cin);
+Color         YCbCrtoRGB(Color cin);
+void          SetCbCr(Image *img, int value);
+FImage        *ImageToFImage(Image *img);
+FImage        *FCopyImage(FImage *img);
+Image         *CopyImage(Image *img);
 
 
 /*--------------------- Voxel-based methods---------------------------- */
@@ -79,7 +90,7 @@ Image        *LabelBinaryImage(Image *img, AdjRel *A); /* Label foreground compo
 Image 		* GetSagitalSlice(Image *img, int slice);
 Image 		* GetAxialSlice(Image *img, int slice);
 Image 		* GetCoronalSlice(Image *img, int slice);
-void 		WriteImageP2(Image *img, char filename[]);
+void 		   WriteImageP2(Image *img, char filename[]);
 
 
 /*Move functions below this line to Visualization files */
@@ -99,12 +110,17 @@ Image 		*MaximumIntensityProjection(Image *img, float xtheta, float ytheta, floa
 
 
 /*---------------------- Task 4---------------------------*/
+int       DiagonalSize (Image *img);
+int       FDiagonalSize (FImage *img);
+char      FValidPoint(FImage *img, Point P);
 Image 		*RayCasting(Image *img, float xtheta, float ytheta, float ztheta);
 int       VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Image *normalIndexImg, Matrix *normalTable, Matrix*ObserverVector, FImage *opacity);
 Matrix    *CreateNormalLookUpMatrix();
 FImage    *CreateOpacityImage(Image *img, Image *gradient);
 void      ImageGradientMagnitudeAndIndex(Image *img, Image *gradientImg, Image *normalIndexImg, AdjRel *A);
 float     PhongShadingTask4(int p, float distance, float diagonal, Matrix *N, Matrix *ObserverVector);
+
+
 
 
 #endif

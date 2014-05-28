@@ -1,8 +1,8 @@
 BIN=../bin
 
 #-lblas
-FLAGS= -g -O0 -Wall -Wno-unused-result -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
-#FLAGS= -O3 -Wall -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
+#FLAGS= -g -O0 -Wall -Wno-unused-result -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
+FLAGS= -w -O3 -Wall -std=gnu99 -pedantic -I /System/Library/Frameworks/vecLib.framework/Headers/
 MO815-3DVIS-LIB    = -L../lib -lmo815-3dvis -lm 
 MO815-3DVIS-FLAGS  = -I../include 
 

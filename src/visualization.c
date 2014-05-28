@@ -660,105 +660,105 @@ Image *SurfaceRenderingByRayCasting(GraphicalContext *gc)
     return (image);
 }
 
-Image *SurfaceRenderingBySplatting(GraphicalContext *gc)
-{
-    int        xo, yo, zo, xf, yf, zf, dx, dy, dz, p, diag = FDiagonalSize(gc->scene);
-    Voxel   u;
-    Point   P;
-    Vector  N;
-    float      opac, phong_val;
-    Image  *image = CreateImage(diag, diag, 1);
+// Image *SurfaceRenderingBySplatting(GraphicalContext *gc)
+// {
+//     int        xo, yo, zo, xf, yf, zf, dx, dy, dz, p, diag = FDiagonalSize(gc->scene);
+//     Voxel   u;
+//     Point   P;
+//     Vector  N;
+//     float      opac, phong_val;
+//     Image  *image = CreateImage(diag, diag, 1);
 
-    SetCbCr(image, 128);
+//     SetCbCr(image, 128);
 
-    xo = gc->viewdir->ftb[gc->viewdir->octant].xo; yo = gc->viewdir->ftb[gc->viewdir->octant].yo; zo = gc->viewdir->ftb[gc->viewdir->octant].zo;
-    xf = gc->viewdir->ftb[gc->viewdir->octant].xf; yf = gc->viewdir->ftb[gc->viewdir->octant].yf; zf = gc->viewdir->ftb[gc->viewdir->octant].zf;
-    dx = gc->viewdir->ftb[gc->viewdir->octant].dx; dy = gc->viewdir->ftb[gc->viewdir->octant].dy; dz = gc->viewdir->ftb[gc->viewdir->octant].dz;
+//     xo = gc->viewdir->ftb[gc->viewdir->octant].xo; yo = gc->viewdir->ftb[gc->viewdir->octant].yo; zo = gc->viewdir->ftb[gc->viewdir->octant].zo;
+//     xf = gc->viewdir->ftb[gc->viewdir->octant].xf; yf = gc->viewdir->ftb[gc->viewdir->octant].yf; zf = gc->viewdir->ftb[gc->viewdir->octant].zf;
+//     dx = gc->viewdir->ftb[gc->viewdir->octant].dx; dy = gc->viewdir->ftb[gc->viewdir->octant].dy; dz = gc->viewdir->ftb[gc->viewdir->octant].dz;
 
-    switch (gc->viewdir->paxis)
-    {
+//     switch (gc->viewdir->paxis)
+//     {
 
-    case AXIS_X:
+//     case AXIS_X:
 
-        for (u.x = xo; (u.x != xf); u.x = u.x + dx)
-            for (u.y = yo; (u.y != yf); u.y = u.y + dy)
-                for (u.z = zo; (u.z != zf); u.z = u.z + dz)
-                {
-                    p = FGetVoxelIndex(gc->scene, u);
-                    if ((gc->opacity->val[p] > 0.0) &&
-                            (gc->object[gc->label->val[p]].opacity > 0.0) &&
-                            (gc->object[gc->label->val[p]].visibility != 0))
-                    {
-                        P.x       = u.x; P.y = u.y; P.z = u.z;
-                        P         = TransformPoint(gc->viewdir->T, P);
-                        N.x       = gc->phong->normal[gc->normal->val[p]].x;
-                        N.y       = gc->phong->normal[gc->normal->val[p]].y;
-                        N.z       = gc->phong->normal[gc->normal->val[p]].z;
-                        N         = TransformVector(gc->viewdir->R, N);
-                        opac      = gc->object[gc->label->val[p]].opacity;
-                        phong_val = opac * PhongShading(gc, p, N, P.z);
-                        VoxelSplatting(gc, image, P, p, phong_val, opac);
-                    }
-                }
+//         for (u.x = xo; (u.x != xf); u.x = u.x + dx)
+//             for (u.y = yo; (u.y != yf); u.y = u.y + dy)
+//                 for (u.z = zo; (u.z != zf); u.z = u.z + dz)
+//                 {
+//                     p = FGetVoxelIndex(gc->scene, u);
+//                     if ((gc->opacity->val[p] > 0.0) &&
+//                             (gc->object[gc->label->val[p]].opacity > 0.0) &&
+//                             (gc->object[gc->label->val[p]].visibility != 0))
+//                     {
+//                         P.x       = u.x; P.y = u.y; P.z = u.z;
+//                         P         = TransformPoint(gc->viewdir->T, P);
+//                         N.x       = gc->phong->normal[gc->normal->val[p]].x;
+//                         N.y       = gc->phong->normal[gc->normal->val[p]].y;
+//                         N.z       = gc->phong->normal[gc->normal->val[p]].z;
+//                         N         = TransformVector(gc->viewdir->R, N);
+//                         opac      = gc->object[gc->label->val[p]].opacity;
+//                         phong_val = opac * PhongShading(gc, p, N, P.z);
+//                         VoxelSplatting(gc, image, P, p, phong_val, opac);
+//                     }
+//                 }
 
-        break;
+//         break;
 
-    case AXIS_Y:
+//     case AXIS_Y:
 
-        for (u.y = yo; (u.y != yf); u.y = u.y + dy)
-            for (u.x = xo; (u.x != xf); u.x = u.x + dx)
-                for (u.z = zo; (u.z != zf); u.z = u.z + dz)
-                {
-                    p = FGetVoxelIndex(gc->scene, u);
-                    if ((gc->opacity->val[p] != 0) &&
-                            (gc->object[gc->label->val[p]].opacity > 0.0) &&
-                            (gc->object[gc->label->val[p]].visibility != 0))
-                    {
-                        P.x       = u.x; P.y = u.y; P.z = u.z;
-                        P         = TransformPoint(gc->viewdir->T, P);
-                        N.x       = gc->phong->normal[gc->normal->val[p]].x;
-                        N.y       = gc->phong->normal[gc->normal->val[p]].y;
-                        N.z       = gc->phong->normal[gc->normal->val[p]].z;
-                        N         = TransformVector(gc->viewdir->R, N);
-                        opac      = gc->object[gc->label->val[p]].opacity;
-                        phong_val = opac * PhongShading(gc, p, N, P.z);
-                        VoxelSplatting(gc, image, P, p, phong_val, opac);
-                    }
-                }
+//         for (u.y = yo; (u.y != yf); u.y = u.y + dy)
+//             for (u.x = xo; (u.x != xf); u.x = u.x + dx)
+//                 for (u.z = zo; (u.z != zf); u.z = u.z + dz)
+//                 {
+//                     p = FGetVoxelIndex(gc->scene, u);
+//                     if ((gc->opacity->val[p] != 0) &&
+//                             (gc->object[gc->label->val[p]].opacity > 0.0) &&
+//                             (gc->object[gc->label->val[p]].visibility != 0))
+//                     {
+//                         P.x       = u.x; P.y = u.y; P.z = u.z;
+//                         P         = TransformPoint(gc->viewdir->T, P);
+//                         N.x       = gc->phong->normal[gc->normal->val[p]].x;
+//                         N.y       = gc->phong->normal[gc->normal->val[p]].y;
+//                         N.z       = gc->phong->normal[gc->normal->val[p]].z;
+//                         N         = TransformVector(gc->viewdir->R, N);
+//                         opac      = gc->object[gc->label->val[p]].opacity;
+//                         phong_val = opac * PhongShading(gc, p, N, P.z);
+//                         VoxelSplatting(gc, image, P, p, phong_val, opac);
+//                     }
+//                 }
 
-        break;
+//         break;
 
-    case AXIS_Z:
+//     case AXIS_Z:
 
-        for (u.z = zo; (u.z != zf); u.z = u.z + dz)
-            for (u.x = xo; (u.x != xf); u.x = u.x + dx)
-                for (u.y = yo; (u.y != yf); u.y = u.y + dy)
-                {
-                    p = FGetVoxelIndex(gc->scene, u);
-                    if ((gc->opacity->val[p] != 0) &&
-                            (gc->object[gc->label->val[p]].opacity > 0.0) &&
-                            (gc->object[gc->label->val[p]].visibility != 0))
-                    {
-                        P.x       = u.x; P.y = u.y; P.z = u.z;
-                        P         = TransformPoint(gc->viewdir->T, P);
-                        N.x       = gc->phong->normal[gc->normal->val[p]].x;
-                        N.y       = gc->phong->normal[gc->normal->val[p]].y;
-                        N.z       = gc->phong->normal[gc->normal->val[p]].z;
-                        N         = TransformVector(gc->viewdir->R, N);
-                        opac      = gc->object[gc->label->val[p]].opacity;
-                        phong_val = opac * PhongShading(gc, p, N, P.z);
-                        VoxelSplatting(gc, image, P, p, phong_val, opac);
-                    }
-                }
-        break;
+//         for (u.z = zo; (u.z != zf); u.z = u.z + dz)
+//             for (u.x = xo; (u.x != xf); u.x = u.x + dx)
+//                 for (u.y = yo; (u.y != yf); u.y = u.y + dy)
+//                 {
+//                     p = FGetVoxelIndex(gc->scene, u);
+//                     if ((gc->opacity->val[p] != 0) &&
+//                             (gc->object[gc->label->val[p]].opacity > 0.0) &&
+//                             (gc->object[gc->label->val[p]].visibility != 0))
+//                     {
+//                         P.x       = u.x; P.y = u.y; P.z = u.z;
+//                         P         = TransformPoint(gc->viewdir->T, P);
+//                         N.x       = gc->phong->normal[gc->normal->val[p]].x;
+//                         N.y       = gc->phong->normal[gc->normal->val[p]].y;
+//                         N.z       = gc->phong->normal[gc->normal->val[p]].z;
+//                         N         = TransformVector(gc->viewdir->R, N);
+//                         opac      = gc->object[gc->label->val[p]].opacity;
+//                         phong_val = opac * PhongShading(gc, p, N, P.z);
+//                         VoxelSplatting(gc, image, P, p, phong_val, opac);
+//                     }
+//                 }
+//         break;
 
-    default:
-        Error("Invalid principal axis", "SurfaceRenderingBySplatting");
+//     default:
+//         Error("Invalid principal axis", "SurfaceRenderingBySplatting");
 
-    }
+//     }
 
-    return (image);
-}
+//     return (image);
+// }
 
 Image *VolumeRenderingByRayCasting(GraphicalContext *gc)
 {
@@ -1107,6 +1107,30 @@ Image *ObjectBorders(Image *bin, AdjRel *A)
 
     return (border);
 }
+
+FImage  *ShellSignedDistTrans(Image *bin, AdjRel *A, float max_dist)
+{
+    Image  *dist;
+    FImage *sdist = NULL;
+    int        p;
+
+    dist  = ShellDistTrans(bin, A, BOTH, max_dist);
+    sdist = CreateFImage(dist->xsize, dist->ysize, dist->zsize);
+
+    for (p = 0; p < dist->n; p++)
+        if (bin->val[p] == 0) /* exterior */
+        {
+            sdist->val[p] = -sqrtf(dist->val[p]);
+        }
+        else   /* interior */
+        {
+            sdist->val[p] = +sqrtf(dist->val[p]);
+        }
+
+    DestroyImage(dist);
+
+    return (sdist);
+}
 void SetObjectNormal(GraphicalContext *gc)
 {
     AdjRel *A;
@@ -1256,12 +1280,12 @@ void SetViewDir(GraphicalContext *gc, float tilt, float spin)
     Txyz            =  TranslationMatrix(t.x, t.y, t.z);
     Rx              =  RotationMatrix(AXIS_X, tilt);
     Ry              =  RotationMatrix(AXIS_Y, spin);
-    gc->viewdir->R  =  MultMatrices(Ry, Rx);
+    gc->viewdir->R  =  MatrixMultiply(Ry, Rx);
     t.x =  diag / 2.0; t.y = diag / 2.0; t.z = diag / 2.0;
     Tuv             =  TranslationMatrix(t.x, t.y, t.z);
 
-    aux             =  MultMatrices(gc->viewdir->R, Txyz);
-    gc->viewdir->T  =  MultMatrices(Tuv, aux);
+    aux             =  MatrixMultiply(gc->viewdir->R, Txyz);
+    gc->viewdir->T  =  MatrixMultiply(Tuv, aux);
 
     DestroyMatrix(aux);
     DestroyMatrix(Txyz);
@@ -1277,10 +1301,10 @@ void SetViewDir(GraphicalContext *gc, float tilt, float spin)
     Txyz     =  TranslationMatrix(t.x, t.y, t.z);
     Rx       =  RotationMatrix(AXIS_X, -tilt);
     Ry       =  RotationMatrix(AXIS_Y, -spin);
-    gc->viewdir->Rinv  =  MultMatrices(Rx, Ry);
+    gc->viewdir->Rinv  =  MatrixMultiply(Rx, Ry);
 
-    aux               =  MultMatrices(gc->viewdir->Rinv, Tuv);
-    gc->viewdir->Tinv =  MultMatrices(Txyz, aux);
+    aux               =  MatrixMultiply(gc->viewdir->Rinv, Tuv);
+    gc->viewdir->Tinv =  MatrixMultiply(Txyz, aux);
 
     DestroyMatrix(aux);
     DestroyMatrix(Txyz);
@@ -1496,10 +1520,7 @@ Image *SurfaceRender(GraphicalContext *gc)
     }
     else   /* pre-computed normals */
     {
-        if (gc->proj_mode == SPLATTING)
-            image = SurfaceRenderingBySplatting(gc);
-        else
-            image = SurfaceRenderingByRayCasting(gc);
+        image = SurfaceRenderingByRayCasting(gc);
     }
 
     return (image);

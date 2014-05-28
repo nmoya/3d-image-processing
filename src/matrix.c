@@ -313,6 +313,20 @@ Matrix      *VoxelToMatrix(Voxel v)
   M->val[AXIS_H] = 1.0;
   return M;
 }
+char PointsAreEqual(Point u1, Point u2)
+{
+  if (fabs(u1.x-u2.x)<Epsilon&&
+      fabs(u1.y-u2.y)<Epsilon&&
+      fabs(u1.z-u2.z)<Epsilon)
+    return(1);
+  else
+    return(0);
+}
+float PointDistance(Point u, Point v)
+{
+  return(sqrtf((u.x-v.x)*(u.x-v.x)+(u.y-v.y)*(u.y-v.y)+(u.z-v.z)*(u.z-v.z)));
+}
+
 
 //Dependency: #include <stdarg.h>
 Matrix      *ComputeTransformation(int n_args, ...)

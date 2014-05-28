@@ -7,26 +7,30 @@
 
 /* Displacements to an adjacent voxel */
 
-typedef struct _adjvoxel {
-  int dx,dy,dz;    
+typedef struct _adjvoxel
+{
+    int dx, dy, dz;
 } AdjVoxel;
 
 /* Adjacency relation */
 
-typedef struct _adjrel { 
-  AdjVoxel *adj; /* list of displacements to the adjacent voxels */
-  int        n;  /* number of adjacent voxels */
+typedef struct _adjrel
+{
+    AdjVoxel *adj; /* list of displacements to the adjacent voxels */
+    int        n;  /* number of adjacent voxels */
 } AdjRel;
 
 Voxel   GetAdjacentVoxel(AdjRel *A, Voxel u, int adj); /* Access adjacent voxel */
 
 AdjRel *CreateAdjRel(int n);      /* Allocate memory to store
-				     adjacency relation */ 
+                     adjacency relation */
 void    DestroyAdjRel(AdjRel *A); /* Free allocated memory */
 
 /* ------------------ Translation-Invariant Adjacency Relations --------------*/
 
 AdjRel *Spheric(float r); /* Create a ball adjacency with radius r >=
-			     1.0 voxel */
+                 1.0 voxel */
 
+
+AdjRel *ClockCircular(float r);
 #endif
