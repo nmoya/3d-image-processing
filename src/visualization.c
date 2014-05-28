@@ -1068,7 +1068,45 @@ void SetProjectionMode(GraphicalContext *gc, char proj_mode)
         gc->viewdir->V   = TransformVector(gc->viewdir->Rinv, gc->viewdir->V);
     }
 }
+Image *ObjectBorders(Image *bin, AdjRel *A)
+{
+    Image *border = CreateImage(bin->xsize, bin->ysize, bin->zsize);
+    int i, p, q;
+    Voxel u, v;
 
+    for (u.z = 0; u.z < bin->zsize; u.z++)
+        for (u.y = 0; u.y < bin->ysize; u.y++)
+            for (u.x = 0; u.x < bin->xsize; u.x++)
+            {
+                p = GetVoxelIndex(bin, u);
+                if (bin->val[p] != 0)
+                {
+                    for (i = 1; i < A->n; i++)
+                    {
+                        v.x = u.x + A->adj[i].dx;
+                        v.y = u.y + A->adj[i].dy;
+                        v.z = u.z + A->adj[i].dz;
+                        if (ValidVoxel(bin, v))
+                        {
+                            q = GetVoxelIndex(bin, v);
+                            if (bin->val[q] == 0)
+                            {
+                                border->val[p] = 255;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            border->val[p] = 255;
+                            break;
+                        }
+                    }
+                }
+            }
+    CopyVoxelSize(bin, border);
+
+    return (border);
+}
 void SetObjectNormal(GraphicalContext *gc)
 {
     AdjRel *A;
@@ -1078,7 +1116,7 @@ void SetObjectNormal(GraphicalContext *gc)
     int        i, p, q;
     Voxel   u, v;
     Vector  N;
-    Set    *S = NULL;
+    Image    *borders = NULL;
 
     if (gc->label == NULL)
         Error("Object labels are required", "SetObjectNormal");
@@ -1090,7 +1128,7 @@ void SetObjectNormal(GraphicalContext *gc)
 
     A             = Spheric(sqrtf(3.0));
     dist          = ShellSignedDistTrans(gc->label, A, 5);
-    S             = ObjectBorderSet(gc->label, A);
+    borders       = ObjectBorders(gc->label, A);
     DestroyAdjRel(&A);
 
     /* estimate object-based normal vectors and set opacity scene for the shell */
@@ -1103,46 +1141,47 @@ void SetObjectNormal(GraphicalContext *gc)
     for (i = 0; i < A->n; i++)
         mag[i] = sqrtf(A->adj[i].dx * A->adj[i].dx + A->adj[i].dy * A->adj[i].dy + A->adj[i].dz * A->adj[i].dz);
 
-    while (S != NULL)
+    for (p = 0; p < borders->n; p++)
     {
-
-        p = RemoveSet(&S);
-
-        gc->opacity->val[p] = 1.0;
-
-        u = FGetVoxelCoord(dist, p);
-        N.x = N.y = N.z = 0.0;
-
-        for (i = 1; i < A->n; i++)
+        if (borders->val[p] != 0)
         {
-            v = GetAdjacentVoxel(A, u, i);
+            gc->opacity->val[p] = 1.0;
+
+            u = GetVoxelCoord(dist, p);
+            N.x = N.y = N.z = 0.0;
+
+            for (i = 1; i < A->n; i++)
+            {
+                v = GetAdjacentVoxel(A, u, i);
+                if (FValidVoxel(dist, v))
+                {
+                    q = FGetVoxelIndex(dist, v);
+                    Delta = dist->val[q] - dist->val[p];
+                    N.x  += Delta * A->adj[i].dx / mag[i];
+                    N.y  += Delta * A->adj[i].dy / mag[i];
+                    N.z  += Delta * A->adj[i].dz / mag[i];
+                }
+            }
+
+            /* force normal to point outward the object */
+            N = NormalizeVector(N);
+            v.x = ROUND(u.x + N.x); v.y = ROUND(u.y + N.y); v.z = ROUND(u.z + N.z);
             if (FValidVoxel(dist, v))
             {
                 q = FGetVoxelIndex(dist, v);
-                Delta = dist->val[q] - dist->val[p];
-                N.x  += Delta * A->adj[i].dx / mag[i];
-                N.y  += Delta * A->adj[i].dy / mag[i];
-                N.z  += Delta * A->adj[i].dz / mag[i];
+                if (gc->label->val[q] != 0)
+                {
+                    N.x = -N.x; N.y = -N.y; N.z = -N.z;
+                }
             }
+            gc->normal->val[p] = GetNormalIndex(N);
         }
-
-        /* force normal to point outward the object */
-        N = NormalizeVector(N);
-        v.x = ROUND(u.x + N.x); v.y = ROUND(u.y + N.y); v.z = ROUND(u.z + N.z);
-        if (FValidVoxel(dist, v))
-        {
-            q = FGetVoxelIndex(dist, v);
-            if (gc->label->val[q] != 0)
-            {
-                N.x = -N.x; N.y = -N.y; N.z = -N.z;
-            }
-        }
-        gc->normal->val[p] = GetNormalIndex(N);
     }
 
     free(mag);
-    DestroyAdjRel(&A);
-    DestroyFImage(&dist);
+    DestroyAdjRel(A);
+    DestroyImage(borders);
+    DestroyFImage(dist);
 
 }
 
