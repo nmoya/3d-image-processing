@@ -55,7 +55,7 @@ Matrix      *MatrixMultiply(Matrix *A, Matrix *B)
 //   double  alpha=1.0, beta=0.0; 
  
 //   if(A->ncols!=B->nrows)
-//     Error("Cannot multiply matrices","iftMultMatrices");
+//     Error("Cannot multiply matrices","MultMatrices");
 
 //    //Compute multiplication between matrices 
 
@@ -187,7 +187,79 @@ float      MatrixInnerProduct(Matrix *A, Matrix *B)
   return result;
 }
 
+float VectorInnerProduct(Vector a, Vector b)
+{
+  return(a.x*b.x + a.y*b.y + a.z*b.z);
+}
+Vector VectorCrossProduct(Vector a, Vector b)
+{
+  Vector c;
 
+  c.x = a.y*b.z - a.z*b.y;
+  c.y = a.z*b.x - a.x*b.z;
+  c.z = a.x*b.y - a.y*b.x;
+
+  return(c);
+}
+float VectorMagnitude(Vector v)
+{
+  return(sqrtf(v.x*v.x + v.y*v.y + v.z*v.z)); 
+}
+Vector NormalizeVector(Vector v)
+{
+  Vector u;
+  float     m = VectorMagnitude(v);
+
+  u.x = v.x; u.y = v.y; u.z = v.z;
+
+  if (m!=0.0){
+    u.x = v.x/m;
+    u.y = v.y/m;
+    u.z = v.z/m;
+  }
+
+  return(u);
+}
+Vector TransformVector(Matrix *A, Vector u)
+{
+  Matrix *um,*res;
+  Vector v;
+
+  um = CreateMatrix(1,4);
+  um->val[0]=u.x;
+  um->val[1]=u.y;
+  um->val[2]=u.z;
+  um->val[3]=1.0;
+  res=MatrixMultiply(A,um);
+  v.x = res->val[0];
+  v.y = res->val[1];
+  v.z = res->val[2];
+
+  DestroyMatrix(um);
+  DestroyMatrix(res);
+
+  return(v);
+}
+Point TransformPoint(Matrix *A, Point u)
+{
+  Matrix *um,*res;
+  Point v;
+
+  um = CreateMatrix(1,4);
+  um->val[0]=u.x;
+  um->val[1]=u.y;
+  um->val[2]=u.z;
+  um->val[3]=1.0;
+  res=MatrixMultiply(A,um);
+  v.x = res->val[0];
+  v.y = res->val[1];
+  v.z = res->val[2];
+
+  DestroyMatrix(um);
+  DestroyMatrix(res);
+
+  return(v);
+}
 Matrix      *ScaleMatrix(float sx, float sy, float sz)
 {
   Matrix *A;

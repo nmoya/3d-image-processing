@@ -70,7 +70,7 @@ typedef struct _surface_rendering_buffers {
 typedef struct _object_attributs {
   float opacity;          /* opacity value in [0,1] */
   float red, green, blue; /* proportions in [0,1] of red, green and
-			     blue components in its color */
+                             blue components in its color */
   char visibility;        /* visibility flag (0/1 for invisible/visible) */
 } ObjectAttributes; 
 
@@ -124,10 +124,6 @@ typedef struct _graphic_context {
   FImage           *opacity;      /* opacity scene used for volume rendering only */
 } GraphicalContext;
 
-
-typedef struct _color_ {
-  int val[3];
-}Color;
 
 /* 
    Graphical Context for 3D visualization of the image properties in

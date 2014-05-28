@@ -11,7 +11,8 @@
 typedef struct _image {
   int    xsize,ysize,zsize; /* number of voxels along x, y, and z */
   int    n, maxval, minval; /* number of voxels */
-  int   *val;               /* list of voxel intensities */ 
+  int    *val;               /* list of voxel intensities */ 
+  int    *Cb, *Cr;
   float  dx,dy,dz;          /* voxel dimensions in mm along x, y, and z */
   int   *tby, *tbz;         /* look-up tables to speed up conversions between 
 			       voxel and its coordinates */
@@ -26,6 +27,9 @@ typedef struct _fimage {
 			       voxel and its coordinates */
 } FImage;
 
+typedef struct _color_ {
+  int val[3];
+}Color;
 
 /* Structure that stores for each face of the volume a vector that is orthogonal and a central point in this vector */
 typedef struct _volumefaces {
@@ -52,6 +56,7 @@ FImage        *CreateFImage(int xsize, int ysize, int zsize);
 void          DestroyFImage(FImage *img); /* Free memory */
 Image        *ReadImage(char *filename); /* Read image from a file */
 void          WriteImage(Image *img, char *filename); /* Write image into a file */ 
+Color         RGBtoYCbCr(Color cin);
 
 
 /*--------------------- Voxel-based methods---------------------------- */
@@ -99,7 +104,7 @@ int       VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Image *n
 Matrix    *CreateNormalLookUpMatrix();
 FImage    *CreateOpacityImage(Image *img, Image *gradient);
 void      ImageGradientMagnitudeAndIndex(Image *img, Image *gradientImg, Image *normalIndexImg, AdjRel *A);
-float     PhongShading(int p, float distance, float diagonal, Matrix *N, Matrix *ObserverVector);
+float     PhongShadingTask4(int p, float distance, float diagonal, Matrix *N, Matrix *ObserverVector);
 
 
 #endif

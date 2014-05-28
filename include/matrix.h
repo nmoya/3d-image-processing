@@ -31,6 +31,12 @@ Matrix 		  *ScaleMatrix(float sx, float sy, float sz);
 Matrix        *ComputeTransformation(int n_args, ...);
 void 		   PrintMatrix(Matrix *M);
 float		   MatrixInnerProduct(Matrix *A, Matrix *B);
+float 		   VectorInnerProduct(Vector a, Vector b);
+Vector 		   VectorCrossProduct(Vector a, Vector b);
+Vector 		   NormalizeVector(Vector v);
+float 		   VectorMagnitude(Vector v);
+Vector 		   TransformVector(Matrix *A, Vector u);
+Point 		   TransformPoint(Matrix *A, Point u);
 
 
 

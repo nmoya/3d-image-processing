@@ -166,6 +166,7 @@ Image *CreateImage(int xsize, int ysize, int zsize)
   img->zsize = zsize; 
   img->dx    = img->dy = img->dz = 1.0;
   img->val   = AllocIntArray(img->n);
+  img->Cb = img->Cr = NULL;
   img->tby   = AllocIntArray(img->ysize);
   img->tbz   = AllocIntArray(img->zsize);
 
@@ -176,7 +177,33 @@ Image *CreateImage(int xsize, int ysize, int zsize)
   img->tbz[0] = 0;
   for (i=1; i < img->zsize; i++)
     img->tbz[i]=img->tbz[i-1]+img->xsize*img->ysize;
+ 
+ return(img);
+}
+Image *CreateColorImage(int xsize, int ysize, int zsize)
+{
+  Image *img=NULL;
+  int    i;
 
+  img = (Image *) calloc(1,sizeof(Image));
+  img->n     = xsize*ysize*zsize;
+  img->xsize = xsize; 
+  img->ysize = ysize; 
+  img->zsize = zsize; 
+  img->dx    = img->dy = img->dz = 1.0;
+  img->val   = AllocIntArray(img->n);
+  img->Cb    = AllocIntArray(img->n);
+  img->Cr    = AllocIntArray(img->n);
+  img->tby   = AllocIntArray(img->ysize);
+  img->tbz   = AllocIntArray(img->zsize);
+
+  img->tby[0] = 0;
+  for (i=1; i < img->ysize; i++)
+    img->tby[i]=img->tby[i-1]+img->xsize;
+
+  img->tbz[0] = 0;
+  for (i=1; i < img->zsize; i++)
+    img->tbz[i]=img->tbz[i-1]+img->xsize*img->ysize;
  
  return(img);
 }
@@ -223,13 +250,35 @@ void DestroyImage(Image *img)
 
   if(img != NULL){
     free(img->val); 
+    if (img->Cb != NULL) free(img->Cb);
+    if (img->Cr != NULL) free(img->Cr);
     free(img->tby);
     free(img->tbz);
     free(img);
   }
 
 }
+Color RGBtoYCbCr(Color cin)
+{
+  Color cout;
 
+  cout.val[0]=(int)(0.257*(float)cin.val[0]+
+        0.504*(float)cin.val[1]+
+        0.098*(float)cin.val[2]+16.0);
+  cout.val[1]=(int)(-0.148*(float)cin.val[0]+
+        -0.291*(float)cin.val[1]+
+        0.439*(float)cin.val[2]+128.0);
+  cout.val[2]=(int)(0.439*(float)cin.val[0]+
+        -0.368*(float)cin.val[1]+
+        -0.071*(float)cin.val[2]+128.0);
+   
+  for(int i=0; i < 3; i++) {
+    if (cout.val[i]<0)   cout.val[i]=0; 
+    if (cout.val[i]>255) cout.val[i]=255; 
+  }
+
+  return(cout);
+}
 Image *ReadImage(char *filename)
 {
   FILE           *fp=NULL;
@@ -961,7 +1010,7 @@ Image* MaximumIntensityProjection(Image *img, float xtheta, float ytheta, float 
 
 
 /* ----------------- Task 4 ---------------------*/
-float PhongShading(int p, float distance, float diagonal, Matrix *N, Matrix *ObserverVector)
+float PhongShadingTask4(int p, float distance, float diagonal, Matrix *N, Matrix *ObserverVector)
 {
   float cos_theta;
   float cos_2theta, power, phong_val=0.0;
@@ -1148,7 +1197,7 @@ int VolumeRenderValue(Voxel p0, Voxel p1, Voxel pn, Image *scene, Image *normalI
         N->val[AXIS_Y] = normalTable->val[GetMatrixIndex(normalTable, normalIndexImg->val[p], AXIS_Y)];
         N->val[AXIS_Z] = normalTable->val[GetMatrixIndex(normalTable, normalIndexImg->val[p], AXIS_Z)];
         opac = opacity->val[p];
-        phong_val = opac * PhongShading(p, distance, diagonal, N, ObserverVector) * acc_opacity;
+        phong_val = opac * PhongShadingTask4(p, distance, diagonal, N, ObserverVector) * acc_opacity;
         intensity = phong_val * scene->val[p];
         acc_opacity = acc_opacity * (1.0 -  opac);
       }
