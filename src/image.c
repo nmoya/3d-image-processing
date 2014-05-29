@@ -207,6 +207,24 @@ Image *CreateColorImage(int xsize, int ysize, int zsize)
 
     return (img);
 }
+void     CopyCbCr(Image *img1, Image *img2)
+{
+  int p;
+
+  if ((img1->xsize != img2->xsize)||(img1->ysize!=img2->ysize)||(img1->zsize!=img2->zsize))
+    Error("Images must have the same domain","CopyCbCr");
+
+  if (img2->Cb == NULL){ 
+    img2->Cb = AllocIntArray(img2->n);
+    img2->Cr = AllocIntArray(img2->n);
+  }
+
+  for (p=0; p < img2->n; p++) {
+    img2->Cb[p] = img1->Cb[p];
+    img2->Cr[p] = img1->Cr[p];
+  }
+
+}
 FImage *CreateFImage(int xsize, int ysize, int zsize)
 {
     FImage *img = NULL;
@@ -512,13 +530,12 @@ void WriteImageP6(Image *img, char *filename)
 
     img->maxval = MaximumValue(img);
     img->minval = MinimumValue(img);
-
     if ((img->maxval < 256) && (img->minval >= 0))
     {
         fprintf(fp, "%d\n", 255);
         for (p = 0; p < img->n; p++)
         {
-            YCbCr.val[0] = img->val[p];
+            YCbCr.val[0] = img->val[p];            
             YCbCr.val[1] = img->Cb[p];
             YCbCr.val[2] = img->Cr[p];
 
@@ -528,6 +545,7 @@ void WriteImageP6(Image *img, char *filename)
             fputc(((uchar)RGB.val[1]), fp);
             fputc(((uchar)RGB.val[2]), fp);
         }
+
     }
     else
     {
@@ -542,8 +560,8 @@ Image *Normalize(Image *img, float minval, float maxval)
     Image *nimg = CreateImage(img->xsize, img->ysize, img->zsize);
     int p;
 
-    // if (img->Cb != NULL)
-    //   CopyCbCr(img,nimg);
+    if (img->Cb != NULL)
+       CopyCbCr(img,nimg);
     CopyVoxelSize(img, nimg);
 
     img->minval  = MinimumValue(img);

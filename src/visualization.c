@@ -164,7 +164,7 @@ void RenderFromSRBuffers(GraphicalContext *gc, Image *image)
         }
     }
 
-    DestroyAdjRel(&A);
+    DestroyAdjRel(A);
 }
 
 void ResetSRBuffers(GraphicalContext *gc)
@@ -626,7 +626,6 @@ Image *SurfaceRenderingByRayCasting(GraphicalContext *gc)
 
         if (gc->overall_opac == 1.0)
         {
-
             #pragma omp parallel for shared(image,gc,n)
             for (int po = 0; po < image->n; po++)
             {
@@ -639,14 +638,8 @@ Image *SurfaceRenderingByRayCasting(GraphicalContext *gc)
                 P0     =  TransformPoint(gc->viewdir->Tinv, P0);
 
                 if (IntersectionPoints(gc, P0, n, &P1, &Pn))
-                {
-
                     VoxelInfoByRayCasting(gc, P0, P1, Pn, &gc->surf_render[po].voxel, &gc->surf_render[po].depth, &gc->surf_render[po].object);
-
-
-                }
             }
-
             RenderFromSRBuffers(gc, image);
 
         }
@@ -1114,7 +1107,7 @@ FImage  *ShellSignedDistTrans(Image *bin, AdjRel *A, float max_dist)
     FImage *sdist = NULL;
     int        p;
 
-    dist  = ShellDistTrans(bin, A, BOTH, max_dist);
+    //dist  = ShellDistTrans(bin, A, BOTH, max_dist);
     sdist = CreateFImage(dist->xsize, dist->ysize, dist->zsize);
 
     for (p = 0; p < dist->n; p++)
@@ -1151,7 +1144,7 @@ void SetObjectNormal(GraphicalContext *gc)
     /* extract shell around the border and some border voxels */
 
     A             = Spheric(sqrtf(3.0));
-    dist          = ShellSignedDistTrans(gc->label, A, 5);
+    //dist          = ShellSignedDistTrans(gc->label, A, 5);
     borders       = ObjectBorders(gc->label, A);
     DestroyAdjRel(&A);
 
@@ -1268,18 +1261,18 @@ void SetViewDir(GraphicalContext *gc, float tilt, float spin)
     }
     else
     {
-        DestroyMatrix(&gc->viewdir->T);
-        DestroyMatrix(&gc->viewdir->Tinv);
-        DestroyMatrix(&gc->viewdir->R);
-        DestroyMatrix(&gc->viewdir->Rinv);
+        DestroyMatrix(gc->viewdir->T);
+        DestroyMatrix(gc->viewdir->Tinv);
+        DestroyMatrix(gc->viewdir->R);
+        DestroyMatrix(gc->viewdir->Rinv);
     }
 
     /* Set scene transformation and rotation matrices */
 
     t.x = -gc->scene->xsize / 2.0; t.y = -gc->scene->ysize / 2.0; t.z = -gc->scene->zsize / 2.0;
     Txyz            =  TranslationMatrix(t.x, t.y, t.z);
-    Rx              =  RotationMatrix(AXIS_X, tilt);
-    Ry              =  RotationMatrix(AXIS_Y, spin);
+    Rx              =  RotationMatrix('X', tilt);
+    Ry              =  RotationMatrix('Y', spin);
     gc->viewdir->R  =  MatrixMultiply(Ry, Rx);
     t.x =  diag / 2.0; t.y = diag / 2.0; t.z = diag / 2.0;
     Tuv             =  TranslationMatrix(t.x, t.y, t.z);
@@ -1299,9 +1292,10 @@ void SetViewDir(GraphicalContext *gc, float tilt, float spin)
     Tuv      =  TranslationMatrix(t.x, t.y, t.z);
     t.x      =  gc->scene->xsize / 2.0; t.y = gc->scene->ysize / 2.0; t.z = gc->scene->zsize / 2.0;
     Txyz     =  TranslationMatrix(t.x, t.y, t.z);
-    Rx       =  RotationMatrix(AXIS_X, -tilt);
-    Ry       =  RotationMatrix(AXIS_Y, -spin);
+    Rx       =  RotationMatrix('X', -tilt);
+    Ry       =  RotationMatrix('Y', -spin);
     gc->viewdir->Rinv  =  MatrixMultiply(Rx, Ry);
+
 
     aux               =  MatrixMultiply(gc->viewdir->Rinv, Tuv);
     gc->viewdir->Tinv =  MatrixMultiply(Txyz, aux);
@@ -1476,23 +1470,23 @@ void DestroyGraphicalContext(GraphicalContext *gc)
         {
             free(gc->object);
             free(gc->surf_render);
-            DestroyImage(&gc->label);
+            DestroyImage(gc->label);
         }
         if (gc->opacity != NULL)
-            DestroyFImage(&gc->opacity);
+            DestroyFImage(gc->opacity);
         if (gc->normal != NULL)
-            DestroyImage(&gc->normal);
+            DestroyImage(gc->normal);
         free(gc->phong->normal);
         free(gc->phong->Idist);
         free(gc->phong);
         free(gc->face);
-        DestroyMatrix(&gc->viewdir->T);
-        DestroyMatrix(&gc->viewdir->Tinv);
-        DestroyMatrix(&gc->viewdir->R);
-        DestroyMatrix(&gc->viewdir->Rinv);
+        DestroyMatrix(gc->viewdir->T);
+        DestroyMatrix(gc->viewdir->Tinv);
+        DestroyMatrix(gc->viewdir->R);
+        DestroyMatrix(gc->viewdir->Rinv);
         free(gc->viewdir->ftb);
         free(gc->viewdir);
-        DestroyFImage(&gc->scene);
+        DestroyFImage(gc->scene);
         free(gc);
     }
     else

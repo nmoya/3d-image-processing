@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
     FImage *scene;
     GraphicalContext *gc;
     timer     *t1 = NULL, *t2 = NULL;
+    char buffer[120];
+    float tilt, spin;
 
     if (argc != 5)
         Error("Usage: SurfaceRender <image.scn> <label.scn> <tilt> <spin>", "main");
@@ -30,36 +32,27 @@ int main(int argc, char *argv[])
 
     gc     = CreateGraphicalContext(scene, label);
 
-    SetViewDir(gc, atof(argv[3]), atof(argv[4]));
-    SetObjectNormal(gc);
+    tilt = atof(argv[3]);
+    spin = atof(argv[4]);
+    SetViewDir(gc, tilt, spin);
 
+    //SetObjectNormal(gc);
     SetObjectColor(gc, 1, 1.0, 1.0, 0.0);
     SetObjectVisibility(gc, 1, 1);
-    SetObjectOpacity(gc, 1, 0.1);
-
-    SetObjectColor(gc, 2, 0.0, 1.0, 1.0);
-    SetObjectVisibility(gc, 2, 1);
-    SetObjectOpacity(gc, 2, 1);
-
-    SetObjectColor(gc, 3, 0.5, 0.5, 1.0);
-    SetObjectVisibility(gc, 3, 1);
-    SetObjectOpacity(gc, 3, 1);
-
-    SetObjectColor(gc, 4, 0.5, 1.0, 0.5);
-    SetObjectVisibility(gc, 4, 1);
-    SetObjectOpacity(gc, 4, 0.1);
+    SetObjectOpacity(gc, 1, 1);
 
     SetProjectionMode(gc, RAYCASTING);
-
+    
     output   = SurfaceRender(gc);
-
 
     DestroyImage(label);
     DestroyFImage(scene);
     DestroyGraphicalContext(gc);
 
     img = Normalize(output, 0, 255);
-    WriteImageP6(img, "result.ppm");
+
+    sprintf(buffer, "surfacer%.0f%.0f.ppm", tilt, spin);
+    WriteImageP6(img, buffer);
     DestroyImage(output);
     DestroyImage(img);
 

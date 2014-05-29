@@ -1,6 +1,10 @@
 .DS_Store
 data
 bin
+*.pgm
+*.ppm
+*.scn
+*.gif
 
 # Object files
 *.o

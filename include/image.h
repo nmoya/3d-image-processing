@@ -65,6 +65,7 @@ void          WriteImageP6(Image *img, char *filename);
 Color         RGBtoYCbCr(Color cin);
 Color         YCbCrtoRGB(Color cin);
 void          SetCbCr(Image *img, int value);
+void          CopyCbCr(Image *img1, Image *img2);
 FImage        *ImageToFImage(Image *img);
 FImage        *FCopyImage(FImage *img);
 Image         *CopyImage(Image *img);

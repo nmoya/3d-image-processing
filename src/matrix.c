@@ -225,7 +225,7 @@ Vector TransformVector(Matrix *A, Vector u)
   Matrix *um,*res;
   Vector v;
 
-  um = CreateMatrix(1,4);
+  um = CreateMatrix(4,1);
   um->val[0]=u.x;
   um->val[1]=u.y;
   um->val[2]=u.z;
@@ -245,7 +245,7 @@ Point TransformPoint(Matrix *A, Point u)
   Matrix *um,*res;
   Point v;
 
-  um = CreateMatrix(1,4);
+  um = CreateMatrix(4,1);
   um->val[0]=u.x;
   um->val[1]=u.y;
   um->val[2]=u.z;
