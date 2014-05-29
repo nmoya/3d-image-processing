@@ -13,7 +13,7 @@
    and voxel splatting, including current viewing direction
    parameters.
      
-       Octants of the Scene    
+       Octants of the Scene
  z
   /
  /

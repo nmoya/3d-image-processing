@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     SetViewDir(gc, tilt, spin);
 
     //SetObjectNormal(gc);
-    SetObjectColor(gc, 1, 1.0, 1.0, 0.0);
+    SetObjectColor(gc, 1, 0.9, 0.9, 0.9);
     SetObjectVisibility(gc, 1, 1);
     SetObjectOpacity(gc, 1, 1);
 

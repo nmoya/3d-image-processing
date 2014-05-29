@@ -21,22 +21,33 @@ int main(int argc, char *argv[])
         Error("Run: ./main <filename> <output> <tilt> <spin>", "main");
     
     char buffer[512];
-    //char buffer2[512];
-
-    float tx, ty, tz;
-    tx = atof(argv[3]);
-    ty = atof(argv[4]);
-    tz = 0;
+    float tilt, spin;
+    tilt = atof(argv[3]);
+    spin = atof(argv[4]);
+    Image *output = NULL, *rend = NULL;
     Image *img = ReadImage(argv[1]);
-    Image *output = NULL;
+    Image *grad = NULL, *index = NULL;
+    AdjRel *A = Spheric(sqrtf(3));
+    Image *scene  = ImageToFImage(img);
+    GraphicalContext *gc;
+    
+    grad = CreateImage(img->xsize, img->ysize, img->zsize);
+    index = CreateImage(img->xsize, img->ysize, img->zsize);
+    ImageGradientMagnitudeAndIndex(img, grad, index, A);
 
-    output = RayCasting(img, tx, ty, tz);
-    sprintf(buffer, "%.1f%.1f%.1f%s", tx, ty, tz, argv[2]);
-    //sprintf(buffer2, "convert %s %s.png", buffer, buffer);
-    //system(buffer2);
+    gc     = CreateGraphicalContext(scene, NULL);
+    SetSceneOpacity(gc, 0 /*min value*/, 255 /*max value*/, grad, 50 /*gradient threshold*/, 1 /*opacity*/);
+    SetViewDir(gc, tilt, spin);
+    
+    rend = VolumeRender(gc);
 
+    output = Normalize(rend, 0, 255);
+    sprintf(buffer, "%.0f%0.f%s", tilt, spin, argv[2]);
     WriteImageP2(output, buffer);
+
     DestroyImage(img);
     DestroyImage(output);
+    DestroyImage(rend);
+    DestroyFImage(scene);
     return 0;
 }

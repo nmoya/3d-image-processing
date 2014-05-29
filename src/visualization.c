@@ -1012,7 +1012,7 @@ void SetSceneNormal(GraphicalContext *gc)
         Error("Set scene opacity first", "SetSceneNormal");
 
     if (gc->normal != NULL)
-        DestroyImage(&gc->normal);
+        DestroyImage(gc->normal);
 
     gc->normal = CreateImage(gc->scene->xsize, gc->scene->ysize, gc->scene->zsize);
 
@@ -1048,7 +1048,7 @@ void SetSceneNormal(GraphicalContext *gc)
 
 
     free(mag);
-    DestroyAdjRel(&A);
+    DestroyAdjRel(A);
 
 }
 
@@ -1139,14 +1139,14 @@ void SetObjectNormal(GraphicalContext *gc)
         Error("Object labels are required", "SetObjectNormal");
 
     if (gc->normal != NULL)
-        DestroyImage(&gc->normal);
+        DestroyImage(gc->normal);
 
     /* extract shell around the border and some border voxels */
 
     A             = Spheric(sqrtf(3.0));
     //dist          = ShellSignedDistTrans(gc->label, A, 5);
     borders       = ObjectBorders(gc->label, A);
-    DestroyAdjRel(&A);
+    DestroyAdjRel(A);
 
     /* estimate object-based normal vectors and set opacity scene for the shell */
 
